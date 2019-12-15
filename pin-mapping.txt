@@ -1,0 +1,16 @@
+dot matrix:
+CLK to 23
+CS to 24
+DIN to 19
+GND to GND
+VCC to 5v
+
+RFID:
+SDA to 24
+SCK to 23
+MOSI to 19
+MISO to 21
+IRQ to X
+GND to GND
+RST to 22
+3.3V to 3.3V
