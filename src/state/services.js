@@ -9,11 +9,13 @@ exports.getShouldResume = async ({ playerIds }) => {
   // if user wants to resume, resolve with the previous score in teamPoints
   const [team1, team2] = formatTeams(playerIds)
 
-  const game = await Game.find(team1, team2, { completed: false })
+  const data = await Game.initializeCompetition(team1, team2)
 
-  if (!game) {
+  if (!data.current) {
     return Promise.resolve(Game(team1, team2))
   }
+
+  const game = Game(team1, team2, data.current)
 
   // TODO: prompt user for resuming or not
   const wantsToResume = await shouldResumeGame()
@@ -25,8 +27,8 @@ exports.getShouldResume = async ({ playerIds }) => {
   }
 }
 
-exports.finalizeGame = ({ currentGame }) => {
+exports.completeGame = ({ currentGame }) => {
+  currentGame.endGame()
   currentGame.finalizeGame()
-  currentGame.updateGame()
   return Promise.resolve()
 }

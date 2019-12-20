@@ -10,7 +10,7 @@ const {
   setGame,
   checkForWinner,
 } = require('./actions')
-const { getShouldResume, finalizeGame } = require('./services')
+const { getShouldResume, completeGame } = require('./services')
 const { canActivate, gameComplete } = require('./guards')
 
 exports.gameConfig = {
@@ -62,8 +62,8 @@ exports.gameConfig = {
     complete: {
       exit: resetGame,
       invoke: {
-        id: 'finalize-game',
-        src: finalizeGame,
+        id: 'complete-game',
+        src: completeGame,
         onDone: 'inactive',
       }
     }

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "test:watch": "jest -- --watch",
+    "test:watch": "npm test -- --watch",
     "start": "node ./src"
   },
   "keywords": [],
@@ -14,6 +14,7 @@
   "dependencies": {
     "aws-sdk": "^2.570.0",
     "lodash.debounce": "^4.0.8",
+    "node-fetch": "^2.6.0",
     "onoff": "^5.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.5",

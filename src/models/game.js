@@ -1,3 +1,6 @@
+const api = require('../utils/api')
+const { toCompetitionId } = require('../utils')
+
 const Game = (t1, t2, initialProps = {}) => {
   if (!t1 && !t2) {
     console.log('Two teams must be present to create a game, ending')
@@ -13,15 +16,15 @@ const Game = (t1, t2, initialProps = {}) => {
     endedAt: initialProps.endedAt || null,
   }
 
-  const updateGame = () => {
-    // TODO: Saving game in storage
-  }
+  const competitionId = toCompetitionId(props.t1, props.t2)
 
-  const deleteGame = () => {
-    // TODO: Delete game in storage
-  }
+  const updateGame = () => api.updateCurrent(competitionId, props)
 
-  const finalizeGame = () => props.endedAt = new Date()
+  const deleteGame = () => api.deleteCurrent(competitionId)
+
+  const finalizeGame = () => api.finalize(competitionId, props)
+
+  const endGame = () => props.endedAt = new Date()
 
   const scorePoint = index => props[`t${index + 1}Points`]++
 
@@ -29,7 +32,9 @@ const Game = (t1, t2, initialProps = {}) => {
     updateGame,
     deleteGame,
     finalizeGame,
+    endGame,
     scorePoint,
+    competitionId,
     get props() {
       return props
     },
@@ -42,18 +47,23 @@ const Game = (t1, t2, initialProps = {}) => {
   }
 }
 
-Game.find = (t1, t2, attrs = {}) => {
-  // TODO make api call to find games with team configuration
-  // TODO: use attrs to refine results, including allowing checking if completed
-
-  const foundGame = Game(t1, t2, {
-    t1Points: 3,
-    t2Points: 2,
-    startedAt: new Date(),
-    endedAt: null
-  })
-
-  return Promise.resolve(foundGame)
+Game.initializeCompetition = async (t1, t2) => {
+  const data = await api.initializeCompetition(toCompetitionId(t1, t2))
+  return Promise.resolve(data)
 }
+
+// Game.findCurrent = (t1, t2) => {
+//   // TODO make api call to find games with team configuration
+//   // TODO: use attrs to refine results, including allowing checking if completed
+
+//   const foundGame = Game(t1, t2, {
+//     t1Points: 3,
+//     t2Points: 2,
+//     startedAt: new Date(),
+//     endedAt: null
+//   })
+
+//   return Promise.resolve(foundGame)
+// }
 
 module.exports = Game
