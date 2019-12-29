@@ -1,7 +1,23 @@
-const { INITIATE_GAME, ADD_PLAYER, SCORE_POINT } = require('./actionTypes')
+const {
+  INITIATE_GAME,
+  ADD_PLAYER,
+  SCORE_POINT,
+  CONFIRM,
+  DENY,
+  MOVE_CURSOR,
+  SWITCH_SIDES,
+} = require('./actionTypes')
+
 const {
   resetGame,
   addPlayer,
+  switchSides,
+  moveCursor,
+  setSelectedPlayer,
+  exchangePlayers,
+  resetSelectedPlayers,
+  promptResume,
+  clearPrompt,
   scorePoint,
   updateScoreboard,
   updateGame,
@@ -10,7 +26,8 @@ const {
   setGame,
   checkForWinner,
 } = require('./actions')
-const { getShouldResume, completeGame } = require('./services')
+
+const { findNewOrCurrentGame, completeGame } = require('./services')
 const { canActivate, gameComplete } = require('./guards')
 
 exports.gameConfig = {
@@ -20,6 +37,11 @@ exports.gameConfig = {
     playerIds: [],
     currentGame: null,
     bestOfLimit: 1, // how many games to play to
+    cursorPosition: {
+      x: 0,
+      y: 0,
+    },
+    selectedPlayerIndices: []
   },
   states: {
     inactive: {
@@ -30,25 +52,42 @@ exports.gameConfig = {
         },
         [ADD_PLAYER]: {
           actions: addPlayer
-        }
-      }
+        },
+        [SWITCH_SIDES]: {
+          actions: switchSides
+        },
+        [MOVE_CURSOR]: {
+          actions: moveCursor
+        },
+        [CONFIRM]: {
+          actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers]
+        },
+
+      },
     },
     pending: {
       invoke: {
-        id: 'get-should-resume',
-        src: getShouldResume,
-        onDone: {
+        id: 'find-new-or-current-game',
+        src: findNewOrCurrentGame,
+        onDone: 'active',
+        onError: 'shouldResume',
+      },
+      exit: [setGame, updateScoreboard],
+    },
+    shouldResume: {
+      entry: promptResume,
+      exit: clearPrompt,
+      on: {
+        [CONFIRM]: {
           target: 'active',
-          actions: setGame,
         },
-        onError: {
+        [DENY]: {
           target: 'active',
-          actions: [deleteGame, createGame]
-        }
+          actions: [deleteGame, createGame],
+        },
       },
     },
     active: {
-      entry: updateScoreboard,
       on: {
         '': {
           target: 'complete',

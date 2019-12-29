@@ -2,17 +2,89 @@ const path = require('path')
 const { spawn } = require('child_process')
 const { assign } = require('xstate')
 const { Game } = require('../models')
-const { formatTeams } = require('../utils')
+const { formatTeams, sendToScoreboard, prompt } = require('../utils/helpers')
 
-// ---------------- Actions ----------------
+// ---------------- Actions ---------------- //
 exports.resetGame = assign({
   playerIds: () => [],
   currentGame: () => null,
   bestOfLimit: () => 1,
+  cursorPosition: () => ({
+    x: 0,
+    y: 0,
+  }),
+  selectedPlayerIndices: () => [],
 })
 
 exports.addPlayer = assign({
   playerIds: ({ playerIds }, { id }) => [id].concat(playerIds).slice(0, 4)
+})
+
+exports.switchSides = assign({
+  playerIds: ({ playerIds }) => {
+    if (playerIds.length === 4) {
+      return playerIds.slice(2, 4).concat(playerIds.slice(0, 2))
+    }
+
+    return Array.from(playerIds).reverse()
+  }
+})
+
+exports.moveCursor = assign({
+  cursorPosition: ({ cursorPosition }, { direction }) => {
+    const maxY = 1
+    if (direction === 'up') {
+      const newY = cursorPosition.y - 1
+      return {
+        ...cursorPosition,
+        y: newY < 0 ? maxY : newY
+      }
+    } else if (direction === 'down') {
+      const newY = cursorPosition.y + 1
+      return {
+        ...cursorPosition,
+        y: newY > maxY ? 0 : newY
+      }
+    }
+
+    return cursorPosition
+  }
+})
+
+exports.setSelectedPlayer = assign({
+  selectedPlayerIndices: ({ selectedPlayerIndices, cursorPosition }) =>
+    selectedPlayerIndices.concat(cursorPosition.y)
+})
+
+exports.exchangePlayers = assign({
+  playerIds: ({ selectedPlayerIndices, playerIds }) => {
+    if (selectedPlayerIndices.length < 2) return playerIds
+    const [first, second] = selectedPlayerIndices
+
+    const out = []
+    if (first === 0) {
+      out.push(playerIds[second + 2])
+      out.push(playerIds[1])
+    } else {
+      out.push(playerIds[0])
+      out.push(playerIds[second + 2])
+    }
+
+    if (second === 0) {
+      out.push(playerIds[first])
+      out.push(playerIds[3])
+    } else {
+      out.push(playerIds[2])
+      out.push(playerIds[first])
+    }
+
+    return out
+  }
+})
+
+exports.resetSelectedPlayers = assign({
+  selectedPlayerIndices: ({ selectedPlayerIndices }) =>
+    selectedPlayerIndices.length === 2 ? [] : selectedPlayerIndices
 })
 
 exports.scorePoint = assign({
@@ -22,20 +94,28 @@ exports.scorePoint = assign({
   }
 })
 
-let displayProcess
 exports.updateScoreboard = assign({
   currentGame: ({ currentGame }) => {
-    // NOTE: does any previously spawned process need to be killed before starting a new one for memory management?
-    displayProcess = spawn('python', [
-      path.resolve('src/utils/deviceHandlers/sendScore.py'),
-      '192.168.0.32', // NOTE: will need updating
-      currentGame.teamPoints.join(' ')
+    sendToScoreboard(currentGame)
+
+    return currentGame
+  }
+})
+
+exports.promptResume = assign({
+  currentGame: ({ currentGame }) => {
+    prompt(["Would you like to",
+      "resume previous",
+      "unfinished game?",
+      "Y/n"
     ])
+    return currentGame
+  }
+})
 
-    // displayProcess.stdout.on('data', data => {
-    //   console.log('updateScore stdout:', data.toString())
-    // })
-
+exports.clearPrompt = assign({
+  currentGame: ({ currentGame }) => {
+    prompt()
     return currentGame
   }
 })
@@ -60,8 +140,8 @@ exports.updateGame = assign({
 })
 
 exports.deleteGame = assign({
-  currentGame: (ctx, event) => {
-    event.data.deleteGame()
+  currentGame: ({ currentGame }) => {
+    currentGame.deleteGame()
     return null
   }
 })

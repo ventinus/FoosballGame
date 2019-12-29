@@ -1,9 +1,15 @@
+pi 1
+
 dot matrix:
 CLK to 23
 CS to 24
 DIN to 19
 GND to GND
 VCC to 5v
+
+
+
+pi 2
 
 RFID:
 SDA to 24
@@ -14,3 +20,7 @@ IRQ to X
 GND to GND
 RST to 22
 3.3V to 3.3V
+
+Buzzer:
+GND
+GPIO17

@@ -1,5 +1,6 @@
 const Mfrc522 = require("mfrc522-rpi");
 const SoftSPI = require("rpi-softspi");
+const beep = require('./beep')
 
 //# This loop keeps checking for chips. If one is near it will get the UID and authenticate
 console.log("scanning...");
@@ -29,6 +30,7 @@ setInterval(function() {
   }
 
   console.log(`Card detected, CardType: ${response.bitSize}`);
+  beep()
 
   //# Get the UID of the card
   console.log('before response')

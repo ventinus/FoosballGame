@@ -1,12 +1,27 @@
 const { Machine, interpret } = require('xstate')
-const shouldResumeGame = require('../utils/deviceHandlers/shouldResumeGame')
+
 const api = require('../utils/api')
+const helpers = require('../utils/helpers')
 const Game = require('../models/game')
-const { INITIATE_GAME, ADD_PLAYER, SCORE_POINT } = require('./actionTypes')
+
+const {
+  INITIATE_GAME,
+  ADD_PLAYER,
+  SCORE_POINT,
+  CONFIRM,
+  DENY,
+  MOVE_CURSOR,
+  SWITCH_SIDES,
+} = require('./actionTypes')
+
 const { gameConfig } = require('./config')
 
-jest.mock('../utils/deviceHandlers/shouldResumeGame')
 jest.mock('../utils/api')
+jest.mock('../utils/helpers', () => ({
+  ...jest.requireActual('../utils/helpers'),
+  sendToScoreboard: jest.fn(),
+  prompt: jest.fn(),
+}))
 
 const UNKNOWN = 'UNKNOWN'
 
@@ -14,23 +29,22 @@ const fsm = Machine(gameConfig)
 
 const init = (context = {}) => fsm.withContext({ ...fsm.context, ...context })
 
-const mockResume = shouldResume =>
-  shouldResumeGame.mockImplementation(() => Promise.resolve(shouldResume))
-
 const mockApi = (isComplete) => {
   api.initializeCompetition.mockImplementation(() => {
     return isComplete ?
-      Promise.resolve({ current: null }) :
+      Promise.resolve({ completed: [], current: null }) :
       Promise.resolve({ completed: [], current: { t1Points: 4, t2Points: 3 } })
   })
 }
 
 let service
+let machine
+let state
 
-const setupActive = (onTransition) => {
+const setupActive = (onTransition, target = 'active') => {
   service = interpret(init({ playerIds: [1, 2, 3, 4] }))
     .onTransition(state => {
-      if (state.matches('active')) {
+      if (state.matches(target)) {
         onTransition(state)
       }
     })
@@ -41,7 +55,9 @@ const setupActive = (onTransition) => {
 
 describe('gameConfig', () => {
   beforeEach(() => {
-    shouldResumeGame.mockReset()
+    helpers.sendToScoreboard.mockReset()
+    helpers.prompt.mockReset()
+    api.deleteCurrent.mockReset()
   })
 
   it('should initialize with the correct config', () => {
@@ -51,7 +67,12 @@ describe('gameConfig', () => {
     expect(initialState.context).toEqual({
       playerIds: [],
       currentGame: null,
-      bestOfLimit: 1
+      bestOfLimit: 1,
+      cursorPosition: {
+        x: 0,
+        y: 0,
+      },
+      selectedPlayerIndices: []
     })
   })
 
@@ -89,9 +110,57 @@ describe('gameConfig', () => {
 
     it('should initiate the game', () => {
       const { initialState } = init({ playerIds: [1, 2, 3, 4] })
-      const { value, context } = fsm.transition(initialState, { type: INITIATE_GAME })
+      const { value, context } = fsm.transition(initialState, INITIATE_GAME)
       expect(value).toBe('pending')
       expect(context.currentGame).toBe(null)
+    })
+
+    it('should switch the player ids on switch sides', () => {
+      machine = init({ playerIds: [1, 2] })
+
+      state = machine.transition('inactive', SWITCH_SIDES)
+      expect(state.context.playerIds).toEqual([2, 1])
+
+      machine = init({ playerIds: [1, 2, 3, 4] })
+
+      state = machine.transition('inactive', SWITCH_SIDES)
+      expect(state.context.playerIds).toEqual([3, 4, 1, 2])
+    })
+
+    it('should select a player for switching', () => {
+      machine = init({ playerIds: [1, 2] })
+
+      state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+      expect(state.context.cursorPosition.y).toBe(1)
+
+      state = machine.transition(state, { type: CONFIRM })
+      expect(state.context.selectedPlayerIndices).toEqual([1])
+    })
+
+    it('should switch a player with one on the other team', () => {
+      for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+          machine = init({ playerIds: [1, 2, 3, 4], selectedPlayerIndices: [i], cursorPosition: { y: j } })
+
+          state = machine.transition(machine.initialState, { type: CONFIRM })
+          expect(state.context.selectedPlayerIndices).toEqual([])
+          let expected
+          if (i === 0) {
+            if (j === 0) {
+              expected = [3, 2, 1, 4]
+            } else {
+              expected = [4, 2, 3, 1]
+            }
+          } else {
+            if (j === 0) {
+              expected = [1, 3, 2, 4]
+            } else {
+              expected = [1, 4, 3, 2]
+            }
+          }
+          expect(state.context.playerIds).toEqual(expected)
+        }
+      }
     })
   })
 
@@ -99,39 +168,47 @@ describe('gameConfig', () => {
     it('should automatically start a new game when no unfinished game is found', done => {
       mockApi(true)
       setupActive(state => {
+        expect(state.value).toBe('active')
         expect(state.context.currentGame.teamPoints).toEqual([0, 0])
-        expect(shouldResumeGame.mock.calls.length).toBe(0)
+        expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([0, 0])
         done()
       })
     })
 
-    // TODO: needs to monitor the api #deleteCurrent function to see if it was called
-    it('should call game.delete when user does not want to resume and start a new game', done => {
+    it('should move to shouldResume state when an unfinished game is found', done => {
       mockApi(false)
-      mockResume(false)
       setupActive(state => {
-        expect(api.deleteCurrent).toHaveBeenCalled()
-        expect(state.context.currentGame.teamPoints).toEqual([0, 0])
-        expect(shouldResumeGame.mock.calls.length).toBe(1)
-        done()
-      })
-    })
-
-    it('should resume the game when desired', done => {
-      mockApi(false)
-      mockResume(true)
-      setupActive(state => {
+        expect(state.value).toBe('shouldResume')
         expect(state.context.currentGame.teamPoints).toEqual([4, 3])
-        expect(shouldResumeGame.mock.calls.length).toBe(1)
+        expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([4, 3])
+        expect(helpers.prompt.mock.calls[0][0].length).toBe(4)
         done()
-      })
+      }, 'shouldResume')
+    })
+  })
+
+  describe('shouldResume', () => {
+    it('should resume the game', () => {
+      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
+
+      state = machine.transition('shouldResume', CONFIRM)
+      expect(state.value).toBe('active')
+      expect(state.context.currentGame.teamPoints).toEqual([1, 3])
+      expect(helpers.prompt.mock.calls[0][0]).toBeUndefined()
+    })
+
+    it('should delete the current game and start a new one', () => {
+      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
+
+      state = machine.transition('shouldResume', DENY)
+      expect(api.deleteCurrent).toHaveBeenCalledWith('1V2')
+      expect(state.context.currentGame.teamPoints).toEqual([0, 0])
+      expect(state.value).toBe('active')
+      expect(helpers.prompt.mock.calls[0][0]).toBeUndefined()
     })
   })
 
   describe('active', () => {
-    let machine
-    let state
-
     it('should not change state from an unknown action', () => {
       machine = init({ playerIds: [1, 2], currentGame: Game('1', '2') })
 
