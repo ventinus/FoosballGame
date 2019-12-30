@@ -1,5 +1,5 @@
 const { assign } = require('xstate')
-const { Game } = require('../models')
+const { Game, Player } = require('../models')
 const { formatTeams } = require('../utils')
 
 exports.findNewOrCurrentGame = async ({ playerIds }) => {
@@ -21,4 +21,14 @@ exports.completeGame = ({ currentGame }) => {
   currentGame.endGame()
   currentGame.finalizeGame()
   return Promise.resolve()
+}
+
+exports.findPlayer = async (ctx, { id }) => {
+  const data = await Player.find(id)
+
+  if (!data) {
+    return Promise.reject(id)
+  }
+
+  return Promise.resolve(id)
 }

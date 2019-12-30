@@ -1,6 +1,9 @@
 const {
   INITIATE_GAME,
+  BADGE_SCAN,
   ADD_PLAYER,
+  APPEND_CHAR,
+  BACKSPACE,
   SCORE_POINT,
   CONFIRM,
   DENY,
@@ -11,6 +14,10 @@ const {
 const {
   resetGame,
   addPlayer,
+  appendCharacter,
+  backspace,
+  createPlayer,
+  seedNewPlayer,
   switchSides,
   moveCursor,
   setSelectedPlayer,
@@ -27,7 +34,7 @@ const {
   checkForWinner,
 } = require('./actions')
 
-const { findNewOrCurrentGame, completeGame } = require('./services')
+const { findNewOrCurrentGame, completeGame, findPlayer } = require('./services')
 const { canActivate, gameComplete } = require('./guards')
 
 exports.gameConfig = {
@@ -41,7 +48,11 @@ exports.gameConfig = {
       x: 0,
       y: 0,
     },
-    selectedPlayerIndices: []
+    selectedPlayerIndices: [],
+    newPlayer: {
+      id: '',
+      alias: '',
+    }
   },
   states: {
     inactive: {
@@ -50,9 +61,7 @@ exports.gameConfig = {
           target: 'pending',
           cond: canActivate
         },
-        [ADD_PLAYER]: {
-          actions: addPlayer
-        },
+        [BADGE_SCAN]: 'findPlayer',
         [SWITCH_SIDES]: {
           actions: switchSides
         },
@@ -62,8 +71,33 @@ exports.gameConfig = {
         [CONFIRM]: {
           actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers]
         },
-
       },
+    },
+    findPlayer: {
+      invoke: {
+        id: 'find-player',
+        src: findPlayer,
+        onDone: {
+          target: 'inactive',
+          actions: addPlayer
+        },
+        onError: 'registration'
+      }
+    },
+    registration: {
+      entry: seedNewPlayer,
+      on: {
+        [APPEND_CHAR]: {
+          actions: appendCharacter
+        },
+        [BACKSPACE]: {
+          actions: backspace
+        },
+        [CONFIRM]: {
+          actions: createPlayer,
+          target: 'inactive',
+        },
+      }
     },
     pending: {
       invoke: {

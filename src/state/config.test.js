@@ -6,8 +6,11 @@ const Game = require('../models/game')
 
 const {
   INITIATE_GAME,
+  BADGE_SCAN,
   ADD_PLAYER,
   SCORE_POINT,
+  APPEND_CHAR,
+  BACKSPACE,
   CONFIRM,
   DENY,
   MOVE_CURSOR,
@@ -34,6 +37,12 @@ const mockApi = (isComplete) => {
     return isComplete ?
       Promise.resolve({ completed: [], current: null }) :
       Promise.resolve({ completed: [], current: { t1Points: 4, t2Points: 3 } })
+  })
+}
+
+const mockFindPlayer = isFound => {
+  api.findPlayer.mockImplementation(() => {
+    return isFound ? Promise.resolve({ id: 321, alias: 'foo' }) : Promise.resolve(null)
   })
 }
 
@@ -72,7 +81,11 @@ describe('gameConfig', () => {
         x: 0,
         y: 0,
       },
-      selectedPlayerIndices: []
+      selectedPlayerIndices: [],
+      newPlayer: {
+        id: '',
+        alias: '',
+      }
     })
   })
 
@@ -87,25 +100,59 @@ describe('gameConfig', () => {
       expect(nextState.changed).toBe(false)
     })
 
-    it('should add a player', () => {
-      const { changed, context } = fsm.transition(fsm.initialState, { type: ADD_PLAYER, id: 123 })
-      expect(changed).toBe(true)
-      expect(context.playerIds).toEqual([123])
-      expect(context.currentGame).toBe(null)
+    it('should initiate registration when unrecognized badge is scanned', done => {
+      mockFindPlayer(false)
+      service = interpret(init())
+        .onTransition(state => {
+          if (state.value === 'registration') {
+            expect(api.findPlayer).toHaveBeenCalledWith(123)
+            expect(state.context.newPlayer.id).toBe(123)
+            done()
+          }
+        })
+        .start()
+      service.send({ type: BADGE_SCAN, id: 123 })
     })
 
-    it('should add players to the beginning of the list', () => {
-      const { initialState } = init({ playerIds: [1234] })
-      const { context } = fsm.transition(initialState, { type: ADD_PLAYER, id: 567 })
-      expect(context.playerIds).toEqual([567, 1234])
-      expect(context.currentGame).toBe(null)
+    it('should add a player when badge is recognized', done => {
+      mockFindPlayer(true)
+      service = interpret(init())
+        .onTransition(state => {
+          if (state.value === 'inactive' && state.context.playerIds.length) {
+            expect(state.context.playerIds).toEqual([123])
+            done()
+          }
+        })
+        .start()
+      service.send({ type: BADGE_SCAN, id: 123 })
     })
 
-    it('should not exceed 4 players', () => {
-      const { initialState } = init({ playerIds: [1, 2, 3, 4] })
-      const { context } = fsm.transition(initialState, { type: ADD_PLAYER, id: 567 })
-      expect(context.playerIds).toEqual([567, 1, 2, 3])
-      expect(context.currentGame).toBe(null)
+    it('should add players to the beginning of the list', done => {
+      mockFindPlayer(true)
+      service = interpret(init({ playerIds: [1234] }))
+        .onTransition(state => {
+          if (state.value === 'inactive' && state.context.playerIds.length === 2) {
+            expect(state.context.playerIds).toEqual([567, 1234])
+            expect(state.context.currentGame).toBe(null)
+            done()
+          }
+        })
+        .start()
+      service.send({ type: BADGE_SCAN, id: 567 })
+    })
+
+    it('should not exceed 4 players', done => {
+      mockFindPlayer(true)
+      service = interpret(init({ playerIds: [1, 2, 3, 4] }))
+        .onTransition(state => {
+          if (state.value === 'inactive' && state.context.playerIds[0] !== 1) {
+            expect(state.context.playerIds).toEqual([567, 1, 2, 3])
+            expect(state.context.currentGame).toBe(null)
+            done()
+          }
+        })
+        .start()
+      service.send({ type: BADGE_SCAN, id: 567 })
     })
 
     it('should initiate the game', () => {
@@ -161,6 +208,24 @@ describe('gameConfig', () => {
           expect(state.context.playerIds).toEqual(expected)
         }
       }
+    })
+  })
+
+  describe('registration', () => {
+    it('should handle inputting an alias', () => {
+      machine = init()
+
+      state = machine.transition('registration', { type: APPEND_CHAR, character: 'a' })
+      state = machine.transition(state, { type: APPEND_CHAR, character: 'b' })
+      state = machine.transition(state, { type: APPEND_CHAR, character: 'e' })
+      expect(state.context.newPlayer.alias).toBe('abe')
+
+      state = machine.transition(state, BACKSPACE)
+      state = machine.transition(state, CONFIRM)
+
+      expect(api.createPlayer).toHaveBeenCalledWith({ playerId: '', alias: 'ab' })
+      expect(state.context.newPlayer).toEqual({ id: '', alias: '' })
+      expect(state.value).toBe('inactive')
     })
   })
 

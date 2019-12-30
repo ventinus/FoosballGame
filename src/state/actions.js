@@ -1,7 +1,7 @@
 const path = require('path')
 const { spawn } = require('child_process')
 const { assign } = require('xstate')
-const { Game } = require('../models')
+const { Game, Player } = require('../models')
 const { formatTeams, sendToScoreboard, prompt } = require('../utils/helpers')
 
 // ---------------- Actions ---------------- //
@@ -14,10 +14,42 @@ exports.resetGame = assign({
     y: 0,
   }),
   selectedPlayerIndices: () => [],
+  newPlayer: () => ({
+    id: '',
+    alias: '',
+  })
 })
 
 exports.addPlayer = assign({
-  playerIds: ({ playerIds }, { id }) => [id].concat(playerIds).slice(0, 4)
+  playerIds: ({ playerIds }, { data }) => [data].concat(playerIds).slice(0, 4)
+})
+
+exports.appendCharacter = assign({
+  newPlayer: ({ newPlayer }, { character }) => ({ ...newPlayer, alias: `${newPlayer.alias}${character}` })
+})
+
+exports.backspace = assign({
+  newPlayer: ({ newPlayer }) => ({ ...newPlayer, alias: newPlayer.alias.slice(0, -1) })
+})
+
+exports.seedNewPlayer = assign({
+  newPlayer: (ctx, event) => {
+    return {
+      id: event.data,
+      alias: ''
+    }
+  }
+})
+
+exports.createPlayer = assign({
+  newPlayer: ({ newPlayer }) => {
+    Player.create(newPlayer)
+
+    return {
+      id: '',
+      alias: '',
+    }
+  }
 })
 
 exports.switchSides = assign({
