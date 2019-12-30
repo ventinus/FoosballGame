@@ -41,8 +41,8 @@ const mockApi = (isComplete) => {
 }
 
 const mockFindPlayer = isFound => {
-  api.findPlayer.mockImplementation(() => {
-    return isFound ? Promise.resolve({ id: 321, alias: 'foo' }) : Promise.resolve(null)
+  api.findPlayer.mockImplementation((id) => {
+    return isFound ? Promise.resolve({ id, alias: 'foo' }) : Promise.resolve({ id })
   })
 }
 
@@ -51,7 +51,7 @@ let machine
 let state
 
 const setupActive = (onTransition, target = 'active') => {
-  service = interpret(init({ playerIds: [1, 2, 3, 4] }))
+  service = interpret(init({ players: [1, 2, 3, 4] }))
     .onTransition(state => {
       if (state.matches(target)) {
         onTransition(state)
@@ -74,7 +74,7 @@ describe('gameConfig', () => {
     expect(initialState.value).toEqual('inactive')
 
     expect(initialState.context).toEqual({
-      playerIds: [],
+      players: [],
       currentGame: null,
       bestOfLimit: 1,
       cursorPosition: {
@@ -118,8 +118,8 @@ describe('gameConfig', () => {
       mockFindPlayer(true)
       service = interpret(init())
         .onTransition(state => {
-          if (state.value === 'inactive' && state.context.playerIds.length) {
-            expect(state.context.playerIds).toEqual([123])
+          if (state.value === 'inactive' && state.context.players.length) {
+            expect(state.context.players).toEqual([{ id: 123, alias: 'foo' }])
             done()
           }
         })
@@ -129,10 +129,10 @@ describe('gameConfig', () => {
 
     it('should add players to the beginning of the list', done => {
       mockFindPlayer(true)
-      service = interpret(init({ playerIds: [1234] }))
+      service = interpret(init({ players: [{ id: 1234 }] }))
         .onTransition(state => {
-          if (state.value === 'inactive' && state.context.playerIds.length === 2) {
-            expect(state.context.playerIds).toEqual([567, 1234])
+          if (state.value === 'inactive' && state.context.players.length === 2) {
+            expect(state.context.players).toEqual([{ id: 567, alias: 'foo' }, { id: 1234 }])
             expect(state.context.currentGame).toBe(null)
             done()
           }
@@ -141,12 +141,26 @@ describe('gameConfig', () => {
       service.send({ type: BADGE_SCAN, id: 567 })
     })
 
+    it('should NOT add a player twice', done => {
+      mockFindPlayer(true)
+      service = interpret(init({ players: [{ id: 321 }] }))
+        .onTransition(state => {
+          if (state.value === 'inactive' && state.changed === false) {
+            expect(state.context.players).toEqual([{ id: 321 }])
+            expect(state.context.currentGame).toBe(null)
+            done()
+          }
+        })
+        .start()
+      service.send({ type: BADGE_SCAN, id: 321 })
+    })
+
     it('should not exceed 4 players', done => {
       mockFindPlayer(true)
-      service = interpret(init({ playerIds: [1, 2, 3, 4] }))
+      service = interpret(init({ players: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] }))
         .onTransition(state => {
-          if (state.value === 'inactive' && state.context.playerIds[0] !== 1) {
-            expect(state.context.playerIds).toEqual([567, 1, 2, 3])
+          if (state.value === 'inactive' && state.context.players[0].id !== 1) {
+            expect(state.context.players).toEqual([{ id: 567, alias: 'foo' }, { id: 1 }, { id: 2 }, { id: 3 }])
             expect(state.context.currentGame).toBe(null)
             done()
           }
@@ -156,26 +170,26 @@ describe('gameConfig', () => {
     })
 
     it('should initiate the game', () => {
-      const { initialState } = init({ playerIds: [1, 2, 3, 4] })
+      const { initialState } = init({ players: [1, 2, 3, 4] })
       const { value, context } = fsm.transition(initialState, INITIATE_GAME)
       expect(value).toBe('pending')
       expect(context.currentGame).toBe(null)
     })
 
     it('should switch the player ids on switch sides', () => {
-      machine = init({ playerIds: [1, 2] })
+      machine = init({ players: [1, 2] })
 
       state = machine.transition('inactive', SWITCH_SIDES)
-      expect(state.context.playerIds).toEqual([2, 1])
+      expect(state.context.players).toEqual([2, 1])
 
-      machine = init({ playerIds: [1, 2, 3, 4] })
+      machine = init({ players: [1, 2, 3, 4] })
 
       state = machine.transition('inactive', SWITCH_SIDES)
-      expect(state.context.playerIds).toEqual([3, 4, 1, 2])
+      expect(state.context.players).toEqual([3, 4, 1, 2])
     })
 
     it('should select a player for switching', () => {
-      machine = init({ playerIds: [1, 2] })
+      machine = init({ players: [1, 2] })
 
       state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
       expect(state.context.cursorPosition.y).toBe(1)
@@ -187,7 +201,7 @@ describe('gameConfig', () => {
     it('should switch a player with one on the other team', () => {
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
-          machine = init({ playerIds: [1, 2, 3, 4], selectedPlayerIndices: [i], cursorPosition: { y: j } })
+          machine = init({ players: [1, 2, 3, 4], selectedPlayerIndices: [i], cursorPosition: { y: j } })
 
           state = machine.transition(machine.initialState, { type: CONFIRM })
           expect(state.context.selectedPlayerIndices).toEqual([])
@@ -205,7 +219,7 @@ describe('gameConfig', () => {
               expected = [1, 4, 3, 2]
             }
           }
-          expect(state.context.playerIds).toEqual(expected)
+          expect(state.context.players).toEqual(expected)
         }
       }
     })
@@ -254,7 +268,7 @@ describe('gameConfig', () => {
 
   describe('shouldResume', () => {
     it('should resume the game', () => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
 
       state = machine.transition('shouldResume', CONFIRM)
       expect(state.value).toBe('active')
@@ -263,7 +277,7 @@ describe('gameConfig', () => {
     })
 
     it('should delete the current game and start a new one', () => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2', { t1Points: 1, t2Points: 3 }) })
 
       state = machine.transition('shouldResume', DENY)
       expect(api.deleteCurrent).toHaveBeenCalledWith('1V2')
@@ -275,7 +289,7 @@ describe('gameConfig', () => {
 
   describe('active', () => {
     it('should not change state from an unknown action', () => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2') })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2') })
 
       state = machine.transition('active', ADD_PLAYER)
       expect(state.changed).toBe(false)
@@ -286,7 +300,7 @@ describe('gameConfig', () => {
     })
 
     it('should make updates on SCORE_POINT', () => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2') })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2') })
 
       state = machine.transition('active', { type: SCORE_POINT, index: 0 })
       expect(state.context.currentGame.teamPoints).toEqual([1, 0])
@@ -296,7 +310,7 @@ describe('gameConfig', () => {
     })
 
     it('should make the game complete when the first team wins', done => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 3 }) })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 3 }) })
       service = interpret(machine)
         .onTransition(state => {
           if (state.value === 'complete') {
@@ -311,7 +325,7 @@ describe('gameConfig', () => {
     })
 
     it('should make the game complete when the second team wins', done => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 }) })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 }) })
       service = interpret(machine)
         .onTransition(state => {
           if (state.value === 'complete') {
@@ -326,11 +340,11 @@ describe('gameConfig', () => {
     })
 
     it('should make the game inactive and reset after game completion', done => {
-      machine = init({ playerIds: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 }) })
+      machine = init({ players: [1, 2], currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 }) })
       service = interpret(machine)
         .onTransition(state => {
           if (state.value === 'inactive') {
-            expect(state.context.playerIds).toEqual([])
+            expect(state.context.players).toEqual([])
             expect(state.context.currentGame).toBe(null)
             done()
           }

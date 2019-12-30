@@ -6,7 +6,7 @@ const { formatTeams, sendToScoreboard, prompt } = require('../utils/helpers')
 
 // ---------------- Actions ---------------- //
 exports.resetGame = assign({
-  playerIds: () => [],
+  players: () => [],
   currentGame: () => null,
   bestOfLimit: () => 1,
   cursorPosition: () => ({
@@ -21,7 +21,7 @@ exports.resetGame = assign({
 })
 
 exports.addPlayer = assign({
-  playerIds: ({ playerIds }, { data }) => [data].concat(playerIds).slice(0, 4)
+  players: ({ players }, { data }) => [data].concat(players).slice(0, 4)
 })
 
 exports.appendCharacter = assign({
@@ -33,12 +33,10 @@ exports.backspace = assign({
 })
 
 exports.seedNewPlayer = assign({
-  newPlayer: (ctx, event) => {
-    return {
-      id: event.data,
-      alias: ''
-    }
-  }
+  newPlayer: (ctx, event) => ({
+    id: event.data.id,
+    alias: ''
+  })
 })
 
 exports.createPlayer = assign({
@@ -53,12 +51,12 @@ exports.createPlayer = assign({
 })
 
 exports.switchSides = assign({
-  playerIds: ({ playerIds }) => {
-    if (playerIds.length === 4) {
-      return playerIds.slice(2, 4).concat(playerIds.slice(0, 2))
+  players: ({ players }) => {
+    if (players.length === 4) {
+      return players.slice(2, 4).concat(players.slice(0, 2))
     }
 
-    return Array.from(playerIds).reverse()
+    return Array.from(players).reverse()
   }
 })
 
@@ -89,25 +87,25 @@ exports.setSelectedPlayer = assign({
 })
 
 exports.exchangePlayers = assign({
-  playerIds: ({ selectedPlayerIndices, playerIds }) => {
-    if (selectedPlayerIndices.length < 2) return playerIds
+  players: ({ selectedPlayerIndices, players }) => {
+    if (selectedPlayerIndices.length < 2) return players
     const [first, second] = selectedPlayerIndices
 
     const out = []
     if (first === 0) {
-      out.push(playerIds[second + 2])
-      out.push(playerIds[1])
+      out.push(players[second + 2])
+      out.push(players[1])
     } else {
-      out.push(playerIds[0])
-      out.push(playerIds[second + 2])
+      out.push(players[0])
+      out.push(players[second + 2])
     }
 
     if (second === 0) {
-      out.push(playerIds[first])
-      out.push(playerIds[3])
+      out.push(players[first])
+      out.push(players[3])
     } else {
-      out.push(playerIds[2])
-      out.push(playerIds[first])
+      out.push(players[2])
+      out.push(players[first])
     }
 
     return out
@@ -157,8 +155,8 @@ exports.setGame = assign({
 })
 
 exports.createGame = assign({
-  currentGame: ({ playerIds }) => {
-    const [team1, team2] = formatTeams(playerIds)
+  currentGame: ({ players }) => {
+    const [team1, team2] = formatTeams(players)
     return Game(team1, team2)
   }
 })

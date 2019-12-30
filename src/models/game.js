@@ -49,7 +49,7 @@ const Game = (t1, t2, initialProps = {}) => {
 
 Game.initializeCompetition = async (t1, t2) => {
   const data = await api.initializeCompetition(toCompetitionId(t1, t2))
-  return Promise.resolve(data)
+  return data
 }
 
 // Game.findCurrent = (t1, t2) => {

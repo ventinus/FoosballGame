@@ -9,10 +9,10 @@ exports.initializeCompetition = async (competitionId) => {
       method: 'POST'
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('initializeCompetition err', err)
-    return Promise.reject(err)
+    throw err
   }
 }
 
@@ -24,10 +24,10 @@ exports.updateCurrent = async (competitionId, updates) => {
       headers: { 'Content-Type': 'application/json' },
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('updateCurrent err', err)
-    return Promise.reject(err)
+    throw err
   }
 }
 
@@ -37,10 +37,10 @@ exports.deleteCurrent = async (competitionId) => {
       method: 'DELETE'
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('deleteCurrent err', err)
-    return Promise.reject(err)
+    throw err
   }
 }
 
@@ -52,23 +52,23 @@ exports.finalize = async (competitionId, updates) => {
       headers: { 'Content-Type': 'application/json' },
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('finalize err', err)
-    return Promise.reject(err)
+    throw err
   }
 }
 
 exports.findPlayer = async playerId => {
   try {
-    const response = await fetch(`${playersRoot}/${playerId}`, {
+    const response = await fetch(`${playersRoot}/${playerId}/Find`, {
       method: 'GET'
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('findPlayer err', err)
-    return Promise.reject(err)
+    throw err
   }
 }
 
@@ -76,13 +76,13 @@ exports.createPlayer = async ({ playerId, alias }) => {
   try {
     const response = await fetch(`${playersRoot}/${playerId}/Add`, {
       method: 'PUT',
-      body: JSON.stringify({ id: playerId, alias }),
+      body: JSON.stringify({ alias }),
       headers: { 'Content-Type': 'application/json' },
     })
     const data = await response.json()
-    return Promise.resolve(data)
+    return data
   } catch (err) {
     console.log('updateCurrent err', err)
-    return Promise.reject(err)
+    throw err
   }
 }

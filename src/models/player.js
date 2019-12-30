@@ -13,14 +13,7 @@ const Player = ({ id, alias }) => {
   }
 }
 
-Player.find = async id => {
-  const player = await api.findPlayer(id)
-  if (!player) {
-    return Promise.resolve(null)
-  }
-
-  return Promise.resolve(id)
-}
+Player.find = async id => await api.findPlayer(id)
 
 Player.create = async ({ id, alias }) => {
   await api.createPlayer({ alias, playerId: id })

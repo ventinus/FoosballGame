@@ -35,13 +35,13 @@ const {
 } = require('./actions')
 
 const { findNewOrCurrentGame, completeGame, findPlayer } = require('./services')
-const { canActivate, gameComplete } = require('./guards')
+const { canActivate, notPresent, gameComplete } = require('./guards')
 
 exports.gameConfig = {
   id: 'foosball',
   initial: 'inactive',
   context: {
-    playerIds: [],
+    players: [],
     currentGame: null,
     bestOfLimit: 1, // how many games to play to
     cursorPosition: {
@@ -61,7 +61,10 @@ exports.gameConfig = {
           target: 'pending',
           cond: canActivate
         },
-        [BADGE_SCAN]: 'findPlayer',
+        [BADGE_SCAN]: {
+          target: 'findPlayer',
+          cond: notPresent
+        },
         [SWITCH_SIDES]: {
           actions: switchSides
         },

@@ -1,14 +1,15 @@
 const path = require('path')
 const { spawn } = require('child_process')
 
-exports.formatTeams = playerIds => {
+exports.formatTeams = players => {
   let team1, team2
-  if (playerIds.length === 2) {
-    team1 = `${playerIds[0]}`
-    team2 = `${playerIds[1]}`
-  } else if (playerIds.length === 4) {
-    team1 = playerIds.slice(0, 2).sort().join('::')
-    team2 = playerIds.slice(2, 4).sort().join('::')
+  const ids = players.map(player => player.id)
+  if (ids.length === 2) {
+    team1 = `${ids[0]}`
+    team2 = `${ids[1]}`
+  } else if (ids.length === 4) {
+    team1 = ids.slice(0, 2).sort().join('::')
+    team2 = ids.slice(2, 4).sort().join('::')
   }
   return [team1, team2]
 }
