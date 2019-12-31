@@ -18,6 +18,9 @@ const {
   backspace,
   createPlayer,
   seedNewPlayer,
+  updateCompetition,
+  promptSearching,
+  promptAliasInput,
   switchSides,
   moveCursor,
   setSelectedPlayer,
@@ -56,6 +59,7 @@ exports.gameConfig = {
   },
   states: {
     inactive: {
+      entry: updateCompetition,
       on: {
         [INITIATE_GAME]: {
           target: 'pending',
@@ -66,17 +70,18 @@ exports.gameConfig = {
           cond: notPresent
         },
         [SWITCH_SIDES]: {
-          actions: switchSides
+          actions: [switchSides, updateCompetition]
         },
         [MOVE_CURSOR]: {
-          actions: moveCursor
+          actions: [moveCursor, updateCompetition]
         },
         [CONFIRM]: {
-          actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers]
+          actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers, updateCompetition]
         },
       },
     },
     findPlayer: {
+      entry: promptSearching,
       invoke: {
         id: 'find-player',
         src: findPlayer,
@@ -88,13 +93,13 @@ exports.gameConfig = {
       }
     },
     registration: {
-      entry: seedNewPlayer,
+      entry: [seedNewPlayer, promptAliasInput],
       on: {
         [APPEND_CHAR]: {
-          actions: appendCharacter
+          actions: [appendCharacter, promptAliasInput]
         },
         [BACKSPACE]: {
-          actions: backspace
+          actions: [backspace, promptAliasInput]
         },
         [CONFIRM]: {
           actions: createPlayer,

@@ -30,9 +30,55 @@ exports.sendToScoreboard = ({ teamPoints }) => {
   // })
 }
 
-exports.prompt = (msg = []) => {
+const prompt = (msg = []) => {
   spawn('python', [
      path.resolve('src/utils/deviceHandlers/display.py'),
      ...msg
   ])
+}
+
+exports.prompt = prompt
+
+const fillOledRow = (beginning, end) => {
+  const MAX_LEN = 21 // the amount of characters that can fit in a row on the oled screen
+
+  if (!end) return beginning
+
+  if (beginning.length >= end.length) {
+    const maxBeginningLength = Math.min(beginning.length, MAX_LEN - end.length - 1)
+    const spacesCount = (MAX_LEN - maxBeginningLength - end.length) + 1
+    const spaces = new Array(spacesCount).join(' ')
+    return `${beginning.slice(0, maxBeginningLength)}${spaces}${end}`
+  } else {
+    const maxEndLength = Math.min(end.length, MAX_LEN - beginning.length - 1)
+    const spacesCount = (MAX_LEN - maxEndLength - beginning.length) + 1
+    const spaces = new Array(spacesCount).join(' ')
+    return `${beginning}${spaces}${end.slice(0, maxEndLength)}`
+  }
+}
+
+exports.fillOledRow = fillOledRow
+
+exports.showCompetition = players => {
+  const aliases = players.map(player => player.alias)
+
+  if (!aliases.length) {
+    prompt(['Scan badge to start!'])
+    return
+  }
+
+  let pairs
+  switch (aliases.length) {
+    case 3:
+    case 4:
+      pairs = [[0,2], [1,3]]
+      break;
+    default:
+      pairs = [[0, 1]]
+      break;
+  }
+
+  const msg = pairs.map(([first, second]) => fillOledRow(aliases[first], aliases[second]))
+
+  prompt(msg)
 }

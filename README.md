@@ -2,9 +2,7 @@
 Receives input from connected sensors on a Raspberry Pi, keeping track of score and saving games
 
 # Next Steps:
-- register a badge to a player
-  - setup Player api
-- display players on screen with cursor
+- display cursor with players to make changes
 - literally wire everything up and try it out!
 
 # TODOS (no particular order):

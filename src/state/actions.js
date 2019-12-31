@@ -2,7 +2,7 @@ const path = require('path')
 const { spawn } = require('child_process')
 const { assign } = require('xstate')
 const { Game, Player } = require('../models')
-const { formatTeams, sendToScoreboard, prompt } = require('../utils/helpers')
+const { formatTeams, sendToScoreboard, prompt, showCompetition } = require('../utils/helpers')
 
 // ---------------- Actions ---------------- //
 exports.resetGame = assign({
@@ -21,11 +21,14 @@ exports.resetGame = assign({
 })
 
 exports.addPlayer = assign({
-  players: ({ players }, { data }) => [data].concat(players).slice(0, 4)
+  players: ({ players }, { data }) => {
+    const next = players.concat(data)
+    return next.length > 4 ? next.slice(1) : next
+  }
 })
 
 exports.appendCharacter = assign({
-  newPlayer: ({ newPlayer }, { character }) => ({ ...newPlayer, alias: `${newPlayer.alias}${character}` })
+  newPlayer: ({ newPlayer }, { character }) => ({ ...newPlayer, alias: `${newPlayer.alias}${character}`.slice(0, 10) })
 })
 
 exports.backspace = assign({
@@ -33,10 +36,33 @@ exports.backspace = assign({
 })
 
 exports.seedNewPlayer = assign({
-  newPlayer: (ctx, event) => ({
-    id: event.data.id,
-    alias: ''
-  })
+  newPlayer: (ctx, event) => {
+    return {
+      id: event.data.id,
+      alias: ''
+    }
+  }
+})
+
+exports.updateCompetition = assign({
+  players: ({ players }) => {
+    showCompetition(players)
+    return players
+  }
+})
+
+exports.promptSearching = assign({
+  newPlayer: ({ newPlayer }) => {
+    prompt(['Please wait while', 'I look you up...'])
+    return newPlayer
+  }
+})
+
+exports.promptAliasInput = assign({
+  newPlayer: ({ newPlayer }) => {
+    prompt(['Enter a name (<10):', '', newPlayer.alias])
+    return newPlayer
+  }
 })
 
 exports.createPlayer = assign({

@@ -127,12 +127,12 @@ describe('gameConfig', () => {
       service.send({ type: BADGE_SCAN, id: 123 })
     })
 
-    it('should add players to the beginning of the list', done => {
+    it('should add players to the end of the list', done => {
       mockFindPlayer(true)
-      service = interpret(init({ players: [{ id: 1234 }] }))
+      service = interpret(init({ players: [{ id: 1234, alias: 'bar' }] }))
         .onTransition(state => {
           if (state.value === 'inactive' && state.context.players.length === 2) {
-            expect(state.context.players).toEqual([{ id: 567, alias: 'foo' }, { id: 1234 }])
+            expect(state.context.players).toEqual([{ id: 1234, alias: 'bar' }, { id: 567, alias: 'foo' }])
             expect(state.context.currentGame).toBe(null)
             done()
           }
@@ -157,10 +157,10 @@ describe('gameConfig', () => {
 
     it('should not exceed 4 players', done => {
       mockFindPlayer(true)
-      service = interpret(init({ players: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] }))
+      service = interpret(init({ players: [{ id: 1, alias: 'foo1' }, { id: 2, alias: 'foo2' }, { id: 3, alias: 'foo3' }, { id: 4, alias: 'foo4' }] }))
         .onTransition(state => {
           if (state.value === 'inactive' && state.context.players[0].id !== 1) {
-            expect(state.context.players).toEqual([{ id: 567, alias: 'foo' }, { id: 1 }, { id: 2 }, { id: 3 }])
+            expect(state.context.players).toEqual([{ id: 2, alias: 'foo2' }, { id: 3, alias: 'foo3' }, { id: 4, alias: 'foo4' }, { id: 567, alias: 'foo' }])
             expect(state.context.currentGame).toBe(null)
             done()
           }

@@ -1,4 +1,10 @@
-const { formatTeams, toCompetitionId } = require('./helpers')
+const child_process = require('child_process')
+const { formatTeams, toCompetitionId, fillOledRow, showCompetition } = require('./helpers')
+
+jest.mock('child_process')
+jest.mock('path', () => ({
+  resolve: jest.fn(() => '/path')
+}))
 
 const toPlayers = ids => ids.map(id => ({ id }))
 
@@ -24,9 +30,48 @@ describe('#formatTeams', () => {
 
 describe('#toCompetitionId', () => {
   it('should form the competition ID', () => {
-    expect(toCompetitionId('123', '345')).toEqual('123V345')
-    expect(toCompetitionId('345', '123')).toEqual('123V345')
-    expect(toCompetitionId('123::234', '345::456')).toEqual('123::234V345::456')
-    expect(toCompetitionId('234::456', '123::345')).toEqual('123::345V234::456')
+    expect(toCompetitionId('123', '345')).toBe('123V345')
+    expect(toCompetitionId('345', '123')).toBe('123V345')
+    expect(toCompetitionId('123::234', '345::456')).toBe('123::234V345::456')
+    expect(toCompetitionId('234::456', '123::345')).toBe('123::345V234::456')
+  })
+})
+
+describe('#fillOledRow', () => {
+  it('should separate the two strings with the appropriate amount of spaces', () => {
+    expect(fillOledRow('asdf', 'qwer')).toBe('asdf             qwer')
+    expect(fillOledRow('as', 'qwer')).toBe('as               qwer')
+    expect(fillOledRow('as', 'er')).toBe('as                 er')
+    expect(fillOledRow('asdfasdfasdf', 'qwerqwer')).toBe('asdfasdfasdf qwerqwer')
+    expect(fillOledRow('asdfasdfasdfasdfasdfasdf', 'qwerqwer')).toBe('asdfasdfasdf qwerqwer')
+    expect(fillOledRow('asdf', 'qwerqwerqwerqwerqwerqwer')).toBe('asdf qwerqwerqwerqwer')
+  })
+})
+
+describe('#showCompetition', () => {
+  beforeEach(() => {
+    child_process.spawn.mockReset()
+  })
+
+  const player = alias => ({ alias })
+
+  it('should display with 1 player', () => {
+    showCompetition([player('first')])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', 'first'])
+  })
+
+  it('should display with 2 player', () => {
+    showCompetition([player('first'), player('second')])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'second')])
+  })
+
+  it('should display with 3 player', () => {
+    showCompetition([player('first'), player('second'), player('third')])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), 'second'])
+  })
+
+  it('should display with 4 player', () => {
+    showCompetition([player('first'), player('second'), player('third'), player('fourth')])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), fillOledRow('second', 'fourth')])
   })
 })

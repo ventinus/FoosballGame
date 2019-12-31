@@ -24,7 +24,6 @@ const gameService = interpret(gameMachine)
   .start()
 
 let currentState = gameMachine.initialState.value
-// let currentState = 'registration'
 
 const onBadgeScan = data => gameService.send(BADGE_SCAN, { id: data })
 const onGameStart = () => gameService.send(INITIATE_GAME)
@@ -53,9 +52,7 @@ const onAppKeypress = keyName => {
 }
 
 const onInputKeypress = keyName => {
-  console.log(keyName)
   if (keyName.length === 1 && /[a-z0-9]/.test(keyName)) {
-    console.log('append')
     gameService.send(APPEND_CHAR, {character: keyName})
   } else if (keyName === 'return') {
     gameService.send(CONFIRM)
