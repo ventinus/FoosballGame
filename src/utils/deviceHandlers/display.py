@@ -34,6 +34,7 @@ MSG_1 = sys.argv[1] if (len(sys.argv) > 1) else ""
 MSG_2 = sys.argv[2] if (len(sys.argv) > 2) else ""
 MSG_3 = sys.argv[3] if (len(sys.argv) > 3) else ""
 MSG_4 = sys.argv[4] if (len(sys.argv) > 4) else ""
+MSG_5 = int(sys.argv[5]) if (len(sys.argv) > 5) else -1
 
 
 # Raspberry Pi pin configuration:
@@ -100,6 +101,8 @@ top = padding
 bottom = height-padding
 # Move left to right keeping track of the current x position for drawing shapes.
 x = 0
+y = 2
+circle_size = 5
 
 
 # Load default font.
@@ -113,9 +116,25 @@ font = ImageFont.load_default()
 draw.rectangle((0,0,width,height), outline=0, fill=0)
 
 draw.text((x, top),       MSG_1, font=font, fill=255)
-draw.text((x, top+8),     MSG_2, font=font, fill=255)
+draw.text((x, top+9),     MSG_2, font=font, fill=255)
 draw.text((x, top+17),    MSG_3, font=font, fill=255)
 draw.text((x, top+25),    MSG_4, font=font, fill=255)
+
+# top left
+if (MSG_5 == 0):
+  draw.ellipse((x, y, x + circle_size, y + circle_size), outline=0, fill=255)
+
+# bottom left
+if (MSG_5 == 1):
+  draw.ellipse((x, height - circle_size, x + circle_size, height), outline=0, fill=255)
+
+# top right
+if (MSG_5 == 2):
+  draw.ellipse((width - circle_size, y, width, y + circle_size), outline=0, fill=255)
+
+# bottom right
+if (MSG_5 == 3):
+  draw.ellipse((width - circle_size, height - circle_size, width, height), outline=0, fill=255)
 
 # Display image.
 disp.image(image)

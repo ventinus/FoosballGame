@@ -45,8 +45,8 @@ exports.seedNewPlayer = assign({
 })
 
 exports.updateCompetition = assign({
-  players: ({ players }) => {
-    showCompetition(players)
+  players: ({ players, cursorPosition, currentGame }) => {
+    showCompetition(players, cursorPosition, !currentGame)
     return players
   }
 })

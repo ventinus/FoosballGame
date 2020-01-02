@@ -1,5 +1,12 @@
 const child_process = require('child_process')
-const { formatTeams, toCompetitionId, fillOledRow, showCompetition, toOledRows } = require('./helpers')
+const {
+  formatTeams,
+  toCompetitionId,
+  fillOledRow,
+  showCompetition,
+  toOledRows,
+  cursorPositionToCorner,
+} = require('./helpers')
 
 jest.mock('child_process')
 jest.mock('path', () => ({
@@ -39,12 +46,12 @@ describe('#toCompetitionId', () => {
 
 describe('#fillOledRow', () => {
   it('should separate the two strings with the appropriate amount of spaces', () => {
-    expect(fillOledRow('asdf', 'qwer')).toBe('asdf             qwer')
-    expect(fillOledRow('as', 'qwer')).toBe('as               qwer')
-    expect(fillOledRow('as', 'er')).toBe('as                 er')
-    expect(fillOledRow('asdfasdfasdf', 'qwerqwer')).toBe('asdfasdfasdf qwerqwer')
-    expect(fillOledRow('asdfasdfasdfasdfasdfasdf', 'qwerqwer')).toBe('asdfasdfasdf qwerqwer')
-    expect(fillOledRow('asdf', 'qwerqwerqwerqwerqwerqwer')).toBe('asdf qwerqwerqwerqwer')
+    expect(fillOledRow('asdf', 'qwer')).toBe(' asdf           qwer')
+    expect(fillOledRow('as', 'qwer')).toBe(' as             qwer')
+    expect(fillOledRow('as', 'er')).toBe(' as               er')
+    expect(fillOledRow('asdfasdfasdf', 'qwerqwer')).toBe(' asdfasdfas qwerqwer')
+    expect(fillOledRow('asdfasdfasdfasdfasdfasdf', 'qwerqwer')).toBe(' asdfasdfas qwerqwer')
+    expect(fillOledRow('asdf', 'qwerqwerqwerqwerqwerqwer')).toBe(' asdf qwerqwerqwerqw')
   })
 })
 
@@ -56,23 +63,37 @@ describe('#showCompetition', () => {
   const player = alias => ({ alias })
 
   it('should display with 1 player', () => {
-    showCompetition([player('first')])
+    showCompetition([player('first')], {x: 0, y: 0}, true)
     expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', 'first'])
   })
 
   it('should display with 2 player', () => {
-    showCompetition([player('first'), player('second')])
+    showCompetition([player('first'), player('second')], {x: 0, y: 0}, true)
     expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'second')])
   })
 
-  it('should display with 3 player', () => {
-    showCompetition([player('first'), player('second'), player('third')])
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second'])
+  it('should display cursor with 3 player', () => {
+    showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, true)
+    expect(child_process.spawn)
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second', 0])
   })
 
-  it('should display with 4 player', () => {
-    showCompetition([player('first'), player('second'), player('third'), player('fourth')])
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth')])
+  it('should display cursor with 4 player', () => {
+    showCompetition([player('first'), player('second'), player('third'), player('fourth')], {x: 0, y: 0}, true)
+    expect(child_process.spawn)
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth'), 0])
+  })
+
+  it('should NOT display cursor with 3 player', () => {
+    showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, false)
+    expect(child_process.spawn)
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second', undefined])
+  })
+
+  it('should NOT display cursor with 4 player', () => {
+    showCompetition([player('first'), player('second'), player('third'), player('fourth')], {x: 0, y: 0}, false)
+    expect(child_process.spawn)
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth'), undefined])
   })
 })
 
@@ -88,5 +109,18 @@ describe('#toOledRows', () => {
 
   it('should handle arrays', () => {
     expect(toOledRows(['saf', 'wer', 'adf'])).toEqual(['saf', 'wer', 'adf'])
+  })
+})
+
+describe('#cursorPositionToCorner', () => {
+  it('should output the correct corner number', () => {
+    // top left
+    expect(cursorPositionToCorner({x: 0, y: 0})).toBe(0)
+    // bottom left
+    expect(cursorPositionToCorner({x: 0, y: 1})).toBe(1)
+    // top right
+    expect(cursorPositionToCorner({x: 1, y: 0})).toBe(2)
+    // bottom right
+    expect(cursorPositionToCorner({x: 1, y: 1})).toBe(3)
   })
 })

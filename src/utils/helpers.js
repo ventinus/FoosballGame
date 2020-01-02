@@ -56,8 +56,13 @@ const prompt = (msg = []) => {
 
 exports.prompt = prompt
 
+/**
+ * While the actual max length is 21 on the screen, I'm trimming off 2 characters so that the
+ * cursor dot can be shown on the outsides, hence the leading space being returned
+ */
 const fillOledRow = (beginning, end) => {
-  const MAX_LEN = 21 // the amount of characters that can fit in a row on the oled screen
+  // const MAX_LEN = 21 // the amount of characters that can fit in a row on the oled screen
+  const MAX_LEN = 19
 
   if (!end) return beginning
 
@@ -65,18 +70,28 @@ const fillOledRow = (beginning, end) => {
     const maxBeginningLength = Math.min(beginning.length, MAX_LEN - end.length - 1)
     const spacesCount = (MAX_LEN - maxBeginningLength - end.length) + 1
     const spaces = new Array(spacesCount).join(' ')
-    return `${beginning.slice(0, maxBeginningLength)}${spaces}${end}`
+    return ` ${beginning.slice(0, maxBeginningLength)}${spaces}${end}`
   } else {
     const maxEndLength = Math.min(end.length, MAX_LEN - beginning.length - 1)
     const spacesCount = (MAX_LEN - maxEndLength - beginning.length) + 1
     const spaces = new Array(spacesCount).join(' ')
-    return `${beginning}${spaces}${end.slice(0, maxEndLength)}`
+    return ` ${beginning}${spaces}${end.slice(0, maxEndLength)}`
   }
 }
 
 exports.fillOledRow = fillOledRow
 
-exports.showCompetition = players => {
+const cursorPositionToCorner = ({ x, y }) => {
+  if (x === 0) {
+    return y === 0 ? 0 : 1
+  } else {
+    return y === 0 ? 2 : 3
+  }
+}
+
+exports.cursorPositionToCorner = cursorPositionToCorner
+
+exports.showCompetition = (players, cursorPosition, showCursor) => {
   const aliases = players.map(player => player.alias)
 
   if (!aliases.length) {
@@ -100,6 +115,7 @@ exports.showCompetition = players => {
   if (msg.length === 1) {
     prompt(msg)
   } else {
-    prompt([msg[0], '', '', msg[1]])
+    const cursor = showCursor ? cursorPositionToCorner(cursorPosition) : undefined
+    prompt([msg[0], '', '', msg[1], cursor])
   }
 }
