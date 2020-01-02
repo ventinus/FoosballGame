@@ -109,7 +109,11 @@ exports.moveCursor = assign({
 
 exports.setSelectedPlayer = assign({
   selectedPlayerIndices: ({ selectedPlayerIndices, cursorPosition }) =>
-    selectedPlayerIndices.concat(cursorPosition.y)
+    selectedPlayerIndices.concat(cursorPosition.y),
+  cursorPosition: ({ selectedPlayerIndices }) => ({
+    y: 0,
+    x: selectedPlayerIndices.length === 0 ? 1 : 0,
+  })
 })
 
 exports.exchangePlayers = assign({

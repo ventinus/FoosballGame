@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "test:watch": "npm test -- --watch",
-    "start": "node ./src"
+    "start": "node src",
+    "start:scoreboard": "python src/utils/deviceHandlers/receiveScore.py"
   },
   "keywords": [],
   "author": "",
