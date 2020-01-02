@@ -260,7 +260,7 @@ describe('gameConfig', () => {
         expect(state.value).toBe('shouldResume')
         expect(state.context.currentGame.teamPoints).toEqual([4, 3])
         expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([4, 3])
-        expect(helpers.prompt.mock.calls[0][0].length).toBe(4)
+        expect(helpers.prompt.mock.calls[0][0]).toBe('Would you like to resume your previous unfinished game?')
         done()
       }, 'shouldResume')
     })

@@ -30,10 +30,27 @@ exports.sendToScoreboard = ({ teamPoints }) => {
   // })
 }
 
+const toOledRows = str => {
+  if (typeof str !== 'string') {
+    return str
+  }
+
+  return str.split(' ').reduce((acc, cur) => {
+    if (!acc.length) return [cur]
+    const lastI = acc.length - 1
+    if (acc[lastI].length + cur.length > 21) {
+      return [...acc, cur]
+    }
+    return acc.slice(0, lastI).concat(`${acc[lastI]} ${cur}`)
+  }, [])
+}
+
+exports.toOledRows = toOledRows
+
 const prompt = (msg = []) => {
   spawn('python', [
      path.resolve('src/utils/deviceHandlers/display.py'),
-     ...msg
+     ...toOledRows(msg)
   ])
 }
 
@@ -63,7 +80,7 @@ exports.showCompetition = players => {
   const aliases = players.map(player => player.alias)
 
   if (!aliases.length) {
-    prompt(['Scan badge to start!'])
+    prompt('Scan badge to start!')
     return
   }
 
@@ -80,5 +97,9 @@ exports.showCompetition = players => {
 
   const msg = pairs.map(([first, second]) => fillOledRow(aliases[first], aliases[second]))
 
-  prompt(msg)
+  if (msg.length === 1) {
+    prompt(msg)
+  } else {
+    prompt([msg[0], '', '', msg[1]])
+  }
 }

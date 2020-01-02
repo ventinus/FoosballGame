@@ -53,7 +53,7 @@ exports.updateCompetition = assign({
 
 exports.promptSearching = assign({
   newPlayer: ({ newPlayer }) => {
-    prompt(['Please wait while', 'I look you up...'])
+    prompt('Please wait while I look you up...')
     return newPlayer
   }
 })
@@ -160,11 +160,7 @@ exports.updateScoreboard = assign({
 
 exports.promptResume = assign({
   currentGame: ({ currentGame }) => {
-    prompt(["Would you like to",
-      "resume previous",
-      "unfinished game?",
-      "Y/n"
-    ])
+    prompt('Would you like to resume your previous unfinished game?')
     return currentGame
   }
 })

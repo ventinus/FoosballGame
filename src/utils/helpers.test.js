@@ -1,5 +1,5 @@
 const child_process = require('child_process')
-const { formatTeams, toCompetitionId, fillOledRow, showCompetition } = require('./helpers')
+const { formatTeams, toCompetitionId, fillOledRow, showCompetition, toOledRows } = require('./helpers')
 
 jest.mock('child_process')
 jest.mock('path', () => ({
@@ -67,11 +67,26 @@ describe('#showCompetition', () => {
 
   it('should display with 3 player', () => {
     showCompetition([player('first'), player('second'), player('third')])
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), 'second'])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second'])
   })
 
   it('should display with 4 player', () => {
     showCompetition([player('first'), player('second'), player('third'), player('fourth')])
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), fillOledRow('second', 'fourth')])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth')])
+  })
+})
+
+describe('#toOledRows', () => {
+  it('should split a string into necessary rows', () => {
+    expect(toOledRows('Lorem ipsum dolor sit amet, consectetur adipisicing elit. For What'))
+      .toEqual(['Lorem ipsum dolor sit', 'amet, consectetur', 'adipisicing elit. For', 'What'])
+    expect(toOledRows('Id nisi dicta iste a aliquid quam modi.'))
+      .toEqual(['Id nisi dicta iste a', 'aliquid quam modi.'])
+    expect(toOledRows('eum error animi optio veniam suscipit unde.'))
+      .toEqual(['eum error animi optio', 'veniam suscipit unde.'])
+  })
+
+  it('should handle arrays', () => {
+    expect(toOledRows(['saf', 'wer', 'adf'])).toEqual(['saf', 'wer', 'adf'])
   })
 })
