@@ -6,6 +6,7 @@ const {
   showCompetition,
   toOledRows,
   cursorPositionToCorner,
+  minToMs,
 } = require('./helpers')
 
 jest.mock('child_process')
@@ -122,5 +123,16 @@ describe('#cursorPositionToCorner', () => {
     expect(cursorPositionToCorner({x: 1, y: 0})).toBe(2)
     // bottom right
     expect(cursorPositionToCorner({x: 1, y: 1})).toBe(3)
+  })
+})
+
+describe('#minToMs', () => {
+  it('should convert minutes to milliseconds', () => {
+    expect(minToMs(1)).toBe(60000)
+    expect(minToMs(0)).toBe(0)
+    expect(minToMs(2)).toBe(120000)
+    expect(minToMs(5)).toBe(300000)
+    expect(minToMs(10)).toBe(600000)
+    expect(minToMs(60)).toBe(3600000)
   })
 })

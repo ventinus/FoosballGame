@@ -1,5 +1,6 @@
 const path = require('path')
 const { spawn } = require('child_process')
+const soundBuzzer = require('./deviceHandlers/beep')
 
 exports.formatTeams = players => {
   let team1, team2
@@ -119,3 +120,7 @@ exports.showCompetition = (players, cursorPosition, showCursor) => {
     prompt([msg[0], '', '', msg[1], cursor])
   }
 }
+
+exports.minToMs = min => 1000 * 60 * min
+
+exports.beep = forever => soundBuzzer(undefined, forever)

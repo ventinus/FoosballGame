@@ -2,7 +2,7 @@ const path = require('path')
 const { spawn } = require('child_process')
 const { assign } = require('xstate')
 const { Game, Player } = require('../models')
-const { formatTeams, sendToScoreboard, prompt, showCompetition } = require('../utils/helpers')
+const { formatTeams, sendToScoreboard, prompt, showCompetition, beep } = require('../utils/helpers')
 
 // ---------------- Actions ---------------- //
 exports.resetGame = assign({
@@ -45,25 +45,16 @@ exports.seedNewPlayer = assign({
 })
 
 exports.updateCompetition = assign({
-  players: ({ players, cursorPosition, currentGame }) => {
+  currentGame: ({ players, cursorPosition, currentGame }) => {
     showCompetition(players, cursorPosition, !currentGame)
-    return players
+    return currentGame
   }
 })
 
-exports.promptSearching = assign({
-  newPlayer: ({ newPlayer }) => {
-    prompt('Please wait while I look you up...')
-    return newPlayer
-  }
-})
+exports.promptSearching = () => prompt('Please wait while I look you up...')
 
-exports.promptAliasInput = assign({
-  newPlayer: ({ newPlayer }) => {
-    prompt(['Enter a name (<10):', '', newPlayer.alias])
-    return newPlayer
-  }
-})
+exports.promptAliasInput = ({ newPlayer }) =>
+  prompt(['Enter a name (<10):', '', newPlayer.alias])
 
 exports.createPlayer = assign({
   newPlayer: ({ newPlayer }) => {
@@ -154,27 +145,23 @@ exports.scorePoint = assign({
   }
 })
 
-exports.updateScoreboard = assign({
-  currentGame: ({ currentGame }) => {
-    sendToScoreboard(currentGame)
+exports.updateScoreboard = ({ currentGame }) => {
+  sendToScoreboard(currentGame)
+}
 
-    return currentGame
-  }
-})
+exports.promptResume = () =>
+  prompt('Would you like to resume your previous unfinished game?')
 
-exports.promptResume = assign({
-  currentGame: ({ currentGame }) => {
-    prompt('Would you like to resume your previous unfinished game?')
-    return currentGame
-  }
-})
-
+// NOTE: Dunno why i have to assign() to prompt here, for some reason
+// the following clearPrompt export doesnt work. Suspect it has to do
+// with using entry/exit vs actions
 exports.clearPrompt = assign({
   currentGame: ({ currentGame }) => {
     prompt()
     return currentGame
   }
 })
+// exports.clearPrompt = () => prompt()
 
 exports.setGame = assign({
   currentGame: (ctx, { data }) => data
@@ -188,12 +175,7 @@ exports.createGame = assign({
 })
 
 // save current game state
-exports.updateGame = assign({
-  currentGame: ({ currentGame }) => {
-    currentGame.updateGame()
-    return currentGame
-  }
-})
+exports.updateGame = ({ currentGame }) => currentGame.updateGame()
 
 exports.deleteGame = assign({
   currentGame: ({ currentGame }) => {
@@ -201,3 +183,21 @@ exports.deleteGame = assign({
     return null
   }
 })
+
+exports.setWarning = isWarning => assign({
+  currentGame: ({ currentGame }) => {
+    const msg = isWarning ? 'Are you still playing this game?' : ''
+    prompt(msg)
+    beep(isWarning)
+    return currentGame
+  }
+})
+
+exports.pauseGame = assign({
+  currentGame: ({ currentGame }) => {
+    currentGame.pauseGame()
+    currentGame.updateGame()
+    return currentGame
+  }
+})
+

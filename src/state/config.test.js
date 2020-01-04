@@ -15,6 +15,9 @@ const {
   DENY,
   MOVE_CURSOR,
   SWITCH_SIDES,
+  WARN_PAUSE,
+  GAME_ACTIVITY,
+  PAUSE,
 } = require('./actionTypes')
 
 const { gameConfig } = require('./config')
@@ -24,6 +27,8 @@ jest.mock('../utils/helpers', () => ({
   ...jest.requireActual('../utils/helpers'),
   sendToScoreboard: jest.fn(),
   prompt: jest.fn(),
+  beep: jest.fn(),
+  showCompetition: jest.fn(),
 }))
 
 const UNKNOWN = 'UNKNOWN'
@@ -64,9 +69,12 @@ const setupActive = (onTransition, target = 'active') => {
 
 describe('gameConfig', () => {
   beforeEach(() => {
-    helpers.sendToScoreboard.mockReset()
-    helpers.prompt.mockReset()
-    api.deleteCurrent.mockReset()
+    helpers.sendToScoreboard.mockClear()
+    helpers.prompt.mockClear()
+    helpers.beep.mockClear()
+    helpers.showCompetition.mockClear()
+    api.deleteCurrent.mockClear()
+    api.updateCurrent.mockClear()
   })
 
   it('should initialize with the correct config', () => {
@@ -351,6 +359,64 @@ describe('gameConfig', () => {
         })
         .start('active')
       service.send(SCORE_POINT, { index: 1 })
+    })
+  })
+
+  describe('pauseWarning', () => {
+    const gameProps = {
+      players: [1, 2],
+      currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 })
+    }
+
+    it('should turn on the warning on entry', () => {
+      machine = init(gameProps)
+
+      state = machine.transition('active', WARN_PAUSE)
+      expect(state.value).toBe('pauseWarning')
+      expect(helpers.beep).toHaveBeenCalledWith(true)
+      expect(helpers.prompt).toHaveBeenCalledWith('Are you still playing this game?')
+    })
+
+    it('should turn off the warning on exit and go back to active on confirm', () => {
+      machine = init(gameProps)
+
+      state = machine.transition('pauseWarning', CONFIRM)
+      expect(state.value).toBe('active')
+      expect(helpers.beep).toHaveBeenCalledWith(false)
+      expect(helpers.prompt).toHaveBeenCalledWith('')
+      expect(helpers.showCompetition).toHaveBeenCalled()
+    })
+
+    it('should go back to active when activity detected', () => {
+      machine = init(gameProps)
+
+      state = machine.transition('pauseWarning', GAME_ACTIVITY)
+      expect(state.value).toBe('active')
+      expect(helpers.beep).toHaveBeenCalledWith(false)
+      expect(helpers.prompt).toHaveBeenCalledWith('')
+      expect(helpers.showCompetition).toHaveBeenCalled()
+    })
+
+    it('should pause and reset the game when denied', () => {
+      machine = init(gameProps)
+
+      state = machine.transition('pauseWarning', DENY)
+      expect(state.value).toBe('inactive')
+      expect(api.updateCurrent.mock.calls[0][1].pausedAt).not.toBeUndefined()
+      expect(helpers.beep).toHaveBeenCalledWith(false)
+      expect(state.context.currentGame).toBe(null)
+      expect(state.context.players).toEqual([])
+    })
+
+    it('should pause and reset the game when paused', () => {
+      machine = init(gameProps)
+
+      state = machine.transition('pauseWarning', PAUSE)
+      expect(state.value).toBe('inactive')
+      expect(api.updateCurrent.mock.calls[0][1].pausedAt).not.toBeUndefined()
+      expect(helpers.beep).toHaveBeenCalledWith(false)
+      expect(state.context.currentGame).toBe(null)
+      expect(state.context.players).toEqual([])
     })
   })
 })

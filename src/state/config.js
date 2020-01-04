@@ -9,6 +9,9 @@ const {
   DENY,
   MOVE_CURSOR,
   SWITCH_SIDES,
+  GAME_ACTIVITY,
+  WARN_PAUSE,
+  PAUSE,
 } = require('./actionTypes')
 
 const {
@@ -35,6 +38,8 @@ const {
   createGame,
   setGame,
   checkForWinner,
+  setWarning,
+  pauseGame,
 } = require('./actions')
 
 const { findNewOrCurrentGame, completeGame, findPlayer } = require('./services')
@@ -108,21 +113,19 @@ exports.gameConfig = {
       }
     },
     pending: {
+      exit: [setGame, updateScoreboard],
       invoke: {
         id: 'find-new-or-current-game',
         src: findNewOrCurrentGame,
         onDone: 'active',
         onError: 'shouldResume',
       },
-      exit: [setGame, updateScoreboard],
     },
     shouldResume: {
       entry: promptResume,
-      exit: clearPrompt,
+      exit: [clearPrompt],
       on: {
-        [CONFIRM]: {
-          target: 'active',
-        },
+        [CONFIRM]: 'active',
         [DENY]: {
           target: 'active',
           actions: [deleteGame, createGame],
@@ -130,6 +133,7 @@ exports.gameConfig = {
       },
     },
     active: {
+      entry: updateCompetition,
       on: {
         '': {
           target: 'complete',
@@ -137,8 +141,25 @@ exports.gameConfig = {
         },
         [SCORE_POINT]: {
           actions: [scorePoint, updateScoreboard, updateGame],
-        }
+        },
+        [WARN_PAUSE]: 'pauseWarning'
       }
+    },
+    pauseWarning: {
+      entry: setWarning(true),
+      exit: setWarning(false),
+      on: {
+        [CONFIRM]: 'active',
+        [GAME_ACTIVITY]: 'active',
+        [DENY]: {
+          actions: [pauseGame, resetGame],
+          target: 'inactive'
+        },
+        [PAUSE]: {
+          actions: [pauseGame, resetGame],
+          target: 'inactive'
+        },
+      },
     },
     complete: {
       exit: resetGame,

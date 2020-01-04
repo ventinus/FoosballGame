@@ -13,8 +13,11 @@ const {
   DENY,
   MOVE_CURSOR,
   SWITCH_SIDES,
+  GAME_ACTIVITY,
+  WARN_PAUSE,
+  PAUSE,
 } = require('./state/actionTypes')
-const { childProcess } = require('./utils')
+const { childProcess, minToMs } = require('./utils')
 
 const gameMachine = Machine(gameConfig)
 let currentState = gameMachine.initialState.value
@@ -59,9 +62,24 @@ const onInputKeypress = keyName => {
   }
 }
 
+let gameWarnId = 0
+let gamePauseId = 0
+const onVibration = () => {
+  clearTimeout(gameWarnId)
+  clearTimeout(gamePauseId)
+
+  if (currentState === 'pauseWarning') gameService.send(GAME_ACTIVITY)
+
+  gameWarnId = setTimeout(() => {
+    gameService.send(WARN_PAUSE)
+    gamePauseId = setTimeout(() => gameService.send(PAUSE), 1)
+  }, minToMs(2))
+}
+
 const badgeScanChild = childProcess('readCard.js', onBadgeScan)
 const gameStartChild = childProcess('gameStart.js', onGameStart)
 const scorePointChild = childProcess('scorePoint.js', onPointScore)
+const vibrationChild = childProcess('vibration.js', onVibration)
 
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);

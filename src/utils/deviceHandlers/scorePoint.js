@@ -1,4 +1,3 @@
-const debounce = require('lodash.debounce')
 const { Gpio } = require('onoff');
 
 const [sensor1, sensor2] = [4, 5].map(pin => new Gpio(pin, 'in', 'both'))

@@ -12,8 +12,16 @@ const Game = (t1, t2, initialProps = {}) => {
     t2: t2,
     t1Points: initialProps.t1Points || 0,
     t2Points: initialProps.t2Points || 0,
-    startedAt: initialProps.startedAt || new Date(),
+    startedAt: initialProps.startedAt || Date.now(),
     endedAt: initialProps.endedAt || null,
+    pausedDurations: initialProps.pausedDurations || [],
+  }
+
+  if (initialProps.pausedAt) {
+    props.pausedDurations = [
+      ...props.pausedDurations,
+      Date.now() - initialProps.pausedAt
+    ]
   }
 
   const competitionId = toCompetitionId(props.t1, props.t2)
@@ -24,15 +32,18 @@ const Game = (t1, t2, initialProps = {}) => {
 
   const finalizeGame = () => api.finalize(competitionId, props)
 
-  const endGame = () => props.endedAt = new Date()
+  const endGame = () => props.endedAt = Date.now()
 
   const scorePoint = index => props[`t${index + 1}Points`]++
+
+  const pauseGame = () => props.pausedAt = Date.now()
 
   return {
     updateGame,
     deleteGame,
     finalizeGame,
     endGame,
+    pauseGame,
     scorePoint,
     competitionId,
     get props() {
@@ -59,7 +70,7 @@ Game.initializeCompetition = async (t1, t2) => {
 //   const foundGame = Game(t1, t2, {
 //     t1Points: 3,
 //     t2Points: 2,
-//     startedAt: new Date(),
+//     startedAt: Date.now(),
 //     endedAt: null
 //   })
 
