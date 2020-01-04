@@ -22,6 +22,8 @@ const {
 
 const { gameConfig } = require('./config')
 
+jest.spyOn(Date, 'now')
+
 jest.mock('../utils/api')
 jest.mock('../utils/helpers', () => ({
   ...jest.requireActual('../utils/helpers'),
@@ -37,7 +39,7 @@ const fsm = Machine(gameConfig)
 
 const init = (context = {}) => fsm.withContext({ ...fsm.context, ...context })
 
-const mockApi = (isComplete) => {
+const mockApi = isComplete => {
   api.initializeCompetition.mockImplementation(() => {
     return isComplete ?
       Promise.resolve({ completed: [], current: null }) :
@@ -115,6 +117,8 @@ describe('gameConfig', () => {
           if (state.value === 'registration') {
             expect(api.findPlayer).toHaveBeenCalledWith(123)
             expect(state.context.newPlayer.id).toBe(123)
+            expect(helpers.prompt.mock.calls[0][0]).toBe('Please wait while I look you up...')
+            expect(helpers.prompt.mock.calls[1][0]).toEqual(['Enter a name (<10):', '', ''])
             done()
           }
         })
@@ -180,7 +184,6 @@ describe('gameConfig', () => {
     it('should initiate the game', () => {
       const { initialState } = init({ players: [1, 2, 3, 4] })
       const { value, context } = fsm.transition(initialState, INITIATE_GAME)
-      expect(value).toBe('pending')
       expect(context.currentGame).toBe(null)
     })
 
@@ -240,11 +243,14 @@ describe('gameConfig', () => {
       state = machine.transition('registration', { type: APPEND_CHAR, character: 'a' })
       state = machine.transition(state, { type: APPEND_CHAR, character: 'b' })
       state = machine.transition(state, { type: APPEND_CHAR, character: 'e' })
+      expect(helpers.prompt.mock.calls[0][0][0]).toBe('Enter a name (<10):')
       expect(state.context.newPlayer.alias).toBe('abe')
 
       state = machine.transition(state, BACKSPACE)
-      state = machine.transition(state, CONFIRM)
+      expect(helpers.prompt).toHaveBeenCalledTimes(4)
+      expect(helpers.prompt.mock.calls.map(call => call[0][2])).toEqual(['a', 'ab', 'abe', 'ab'])
 
+      state = machine.transition(state, CONFIRM)
       expect(api.createPlayer).toHaveBeenCalledWith({ playerId: '', alias: 'ab' })
       expect(state.context.newPlayer).toEqual({ id: '', alias: '' })
       expect(state.value).toBe('inactive')
@@ -258,6 +264,7 @@ describe('gameConfig', () => {
         expect(state.value).toBe('active')
         expect(state.context.currentGame.teamPoints).toEqual([0, 0])
         expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([0, 0])
+        expect(helpers.showCompetition.mock.calls[1]).toEqual([[1, 2, 3, 4], {x: 0, y: 0}, false])
         done()
       })
     })
@@ -281,7 +288,8 @@ describe('gameConfig', () => {
       state = machine.transition('shouldResume', CONFIRM)
       expect(state.value).toBe('active')
       expect(state.context.currentGame.teamPoints).toEqual([1, 3])
-      expect(helpers.prompt.mock.calls[0][0]).toBeUndefined()
+      expect(helpers.showCompetition).toHaveBeenCalledTimes(1)
+      expect(helpers.showCompetition).toHaveBeenCalledWith([ 1, 2 ], { x: 0, y: 0 }, false)
     })
 
     it('should delete the current game and start a new one', () => {
@@ -291,7 +299,9 @@ describe('gameConfig', () => {
       expect(api.deleteCurrent).toHaveBeenCalledWith('1V2')
       expect(state.context.currentGame.teamPoints).toEqual([0, 0])
       expect(state.value).toBe('active')
-      expect(helpers.prompt.mock.calls[0][0]).toBeUndefined()
+      expect(helpers.prompt).toHaveBeenCalledTimes(1)
+      expect(helpers.showCompetition).toHaveBeenCalledTimes(1)
+      expect(helpers.showCompetition).toHaveBeenCalledWith([ 1, 2 ], { x: 0, y: 0 }, false)
     })
   })
 
@@ -315,6 +325,9 @@ describe('gameConfig', () => {
 
       state = machine.transition('active', { type: SCORE_POINT, index: 1 })
       expect(state.context.currentGame.teamPoints).toEqual([1, 1])
+
+      expect(helpers.sendToScoreboard).toHaveBeenCalledTimes(2)
+      expect(api.updateCurrent).toHaveBeenCalledTimes(2)
     })
 
     it('should make the game complete when the first team wins', done => {
@@ -363,13 +376,13 @@ describe('gameConfig', () => {
   })
 
   describe('pauseWarning', () => {
-    const gameProps = {
+    const gameProps = (extra = { }) => ({
       players: [1, 2],
-      currentGame: Game('1', '2', { t1Points: 4, t2Points: 4 })
-    }
+      currentGame: Game('1', '2', { ...extra, t1Points: 4, t2Points: 4 })
+    })
 
     it('should turn on the warning on entry', () => {
-      machine = init(gameProps)
+      machine = init(gameProps())
 
       state = machine.transition('active', WARN_PAUSE)
       expect(state.value).toBe('pauseWarning')
@@ -378,7 +391,7 @@ describe('gameConfig', () => {
     })
 
     it('should turn off the warning on exit and go back to active on confirm', () => {
-      machine = init(gameProps)
+      machine = init(gameProps())
 
       state = machine.transition('pauseWarning', CONFIRM)
       expect(state.value).toBe('active')
@@ -388,7 +401,7 @@ describe('gameConfig', () => {
     })
 
     it('should go back to active when activity detected', () => {
-      machine = init(gameProps)
+      machine = init(gameProps())
 
       state = machine.transition('pauseWarning', GAME_ACTIVITY)
       expect(state.value).toBe('active')
@@ -398,22 +411,24 @@ describe('gameConfig', () => {
     })
 
     it('should pause and reset the game when denied', () => {
-      machine = init(gameProps)
+      Date.now.mockImplementation(() => 100)
+      machine = init(gameProps())
 
       state = machine.transition('pauseWarning', DENY)
       expect(state.value).toBe('inactive')
-      expect(api.updateCurrent.mock.calls[0][1].pausedAt).not.toBeUndefined()
+      expect(api.updateCurrent.mock.calls[0][1].pausedAt).toBe(100)
       expect(helpers.beep).toHaveBeenCalledWith(false)
       expect(state.context.currentGame).toBe(null)
       expect(state.context.players).toEqual([])
     })
 
     it('should pause and reset the game when paused', () => {
-      machine = init(gameProps)
+      Date.now.mockImplementation(() => 100)
+      machine = init(gameProps())
 
       state = machine.transition('pauseWarning', PAUSE)
       expect(state.value).toBe('inactive')
-      expect(api.updateCurrent.mock.calls[0][1].pausedAt).not.toBeUndefined()
+      expect(api.updateCurrent.mock.calls[0][1].pausedAt).toBe(100)
       expect(helpers.beep).toHaveBeenCalledWith(false)
       expect(state.context.currentGame).toBe(null)
       expect(state.context.players).toEqual([])

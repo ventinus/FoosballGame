@@ -14,6 +14,7 @@ const Game = (t1, t2, initialProps = {}) => {
     t2Points: initialProps.t2Points || 0,
     startedAt: initialProps.startedAt || Date.now(),
     endedAt: initialProps.endedAt || null,
+    gameDuration: initialProps.gameDuration || null,
     pausedDurations: initialProps.pausedDurations || [],
   }
 
@@ -30,9 +31,16 @@ const Game = (t1, t2, initialProps = {}) => {
 
   const deleteGame = () => api.deleteCurrent(competitionId)
 
-  const finalizeGame = () => api.finalize(competitionId, props)
+  const finalizeGame = () => {
+    if (props.endedAt && props.gameDuration) {
+      api.finalize(competitionId, props)
+    }
+  }
 
-  const endGame = () => props.endedAt = Date.now()
+  const endGame = () => {
+    props.endedAt = Date.now()
+    props.gameDuration = props.pausedDurations.reduce((acc, cur) => acc + cur, 0)
+  }
 
   const scorePoint = index => props[`t${index + 1}Points`]++
 
@@ -62,19 +70,5 @@ Game.initializeCompetition = async (t1, t2) => {
   const data = await api.initializeCompetition(toCompetitionId(t1, t2))
   return data
 }
-
-// Game.findCurrent = (t1, t2) => {
-//   // TODO make api call to find games with team configuration
-//   // TODO: use attrs to refine results, including allowing checking if completed
-
-//   const foundGame = Game(t1, t2, {
-//     t1Points: 3,
-//     t2Points: 2,
-//     startedAt: Date.now(),
-//     endedAt: null
-//   })
-
-//   return Promise.resolve(foundGame)
-// }
 
 module.exports = Game

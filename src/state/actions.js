@@ -44,17 +44,15 @@ exports.seedNewPlayer = assign({
   }
 })
 
-exports.updateCompetition = assign({
-  currentGame: ({ players, cursorPosition, currentGame }) => {
-    showCompetition(players, cursorPosition, !currentGame)
-    return currentGame
-  }
-})
+exports.updateCompetition = assign(({ players, cursorPosition, currentGame }) =>
+  showCompetition(players, cursorPosition, !currentGame)
+)
 
-exports.promptSearching = () => prompt('Please wait while I look you up...')
+exports.promptSearching = assign(() => prompt('Please wait while I look you up...'))
 
-exports.promptAliasInput = ({ newPlayer }) =>
+exports.promptAliasInput = assign(({ newPlayer }) =>
   prompt(['Enter a name (<10):', '', newPlayer.alias])
+)
 
 exports.createPlayer = assign({
   newPlayer: ({ newPlayer }) => {
@@ -145,23 +143,15 @@ exports.scorePoint = assign({
   }
 })
 
-exports.updateScoreboard = ({ currentGame }) => {
+exports.updateScoreboard = assign(({ currentGame }) =>
   sendToScoreboard(currentGame)
-}
+)
 
-exports.promptResume = () =>
+exports.promptResume = assign(() =>
   prompt('Would you like to resume your previous unfinished game?')
+)
 
-// NOTE: Dunno why i have to assign() to prompt here, for some reason
-// the following clearPrompt export doesnt work. Suspect it has to do
-// with using entry/exit vs actions
-exports.clearPrompt = assign({
-  currentGame: ({ currentGame }) => {
-    prompt()
-    return currentGame
-  }
-})
-// exports.clearPrompt = () => prompt()
+exports.clearPrompt = assign(prompt)
 
 exports.setGame = assign({
   currentGame: (ctx, { data }) => data
@@ -175,7 +165,7 @@ exports.createGame = assign({
 })
 
 // save current game state
-exports.updateGame = ({ currentGame }) => currentGame.updateGame()
+exports.updateGame = assign(({ currentGame }) => currentGame.updateGame())
 
 exports.deleteGame = assign({
   currentGame: ({ currentGame }) => {
@@ -184,13 +174,10 @@ exports.deleteGame = assign({
   }
 })
 
-exports.setWarning = isWarning => assign({
-  currentGame: ({ currentGame }) => {
+exports.setWarning = isWarning => assign(() => {
     const msg = isWarning ? 'Are you still playing this game?' : ''
     prompt(msg)
     beep(isWarning)
-    return currentGame
-  }
 })
 
 exports.pauseGame = assign({
@@ -200,4 +187,3 @@ exports.pauseGame = assign({
     return currentGame
   }
 })
-

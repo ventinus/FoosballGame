@@ -123,7 +123,7 @@ exports.gameConfig = {
     },
     shouldResume: {
       entry: promptResume,
-      exit: [clearPrompt],
+      exit: clearPrompt,
       on: {
         [CONFIRM]: 'active',
         [DENY]: {
