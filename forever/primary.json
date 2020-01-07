@@ -1,0 +1,31 @@
+[
+	{
+		"uid": "primary",
+		"append": true,
+		"script": ".",
+		"command": "npm start",
+		"sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
+		"logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/primary/forever.log",
+		"outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/primary/out.log",
+		"errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/primary/error.log"
+	}, {
+		"uid": "ping",
+		"append": true,
+		"script": ".",
+		"command": "npm run ping",
+		"sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
+		"logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/forever.log",
+		"outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/out.log",
+		"errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/error.log"
+	},
+	{
+		"uid": "syncPassword",
+		"append": true,
+		"script": ".",
+		"command": "npm run ping",
+		"sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
+		"logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/forever.log",
+		"outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/out.log",
+		"errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/error.log"
+	}
+]

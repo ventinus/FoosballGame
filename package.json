@@ -7,13 +7,20 @@
     "test": "jest",
     "test:watch": "npm test -- --watch",
     "start": "node src",
-    "start:scoreboard": "python src/utils/deviceHandlers/receiveScore.py"
+    "start:scoreboard": "python src/utils/deviceHandlers/receiveScore.py",
+    "setNewPassword": "node ./config/setNewPassword",
+    "syncPassword": "node ./config/syncPassword",
+    "ping": "./config/ping.sh",
+    "ipAddress": "echo ipAddress",
+    "seed:supplicant": "sudo cp -fr ./config/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf && wpa_cli -i wlan0 reconfigure",
+    "clean:logs": "find . -type f -name '*.log' -print | while read i; do echo ' ' > $i; done "
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.570.0",
+    "inquirer": "^7.0.2",
     "lodash.debounce": "^4.0.8",
     "node-fetch": "^2.6.0",
     "onoff": "^5.0.0",
@@ -25,3 +32,4 @@
     "jest": "^24.9.0"
   }
 }
+
