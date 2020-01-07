@@ -4,39 +4,39 @@
     "append": true,
     "script": ".",
     "command": "npm run start:scoreboard",
-    "sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
-    "logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/secondary/forever.log",
-    "outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/secondary/out.log",
-    "errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/secondary/error.log"
+    "sourceDir": "/home/pi/shared/FoosballGame",
+    "logFile": "/home/pi/shared/FoosballGame/forever/logs/secondary/forever.log",
+    "outFile": "/home/pi/shared/FoosballGame/forever/logs/secondary/out.log",
+    "errFile": "/home/pi/shared/FoosballGame/forever/logs/secondary/error.log"
 	},
 	{
     "uid": "ping",
     "append": true,
     "script": ".",
     "command": "npm run ping",
-    "sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
-    "logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/forever.log",
-    "outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/out.log",
-    "errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/error.log"
+    "sourceDir": "/home/pi/shared/FoosballGame",
+    "logFile": "/home/pi/shared/FoosballGame/forever/logs/other/forever.log",
+    "outFile": "/home/pi/shared/FoosballGame/forever/logs/other/out.log",
+    "errFile": "/home/pi/shared/FoosballGame/forever/logs/other/error.log"
 	},
 	{
     "uid": "ipAddress",
     "append": true,
     "script": ".",
     "command": "npm run ipAddress",
-    "sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
-    "logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/forever.log",
-    "outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/out.log",
-    "errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/error.log"
+    "sourceDir": "/home/pi/shared/FoosballGame",
+    "logFile": "/home/pi/shared/FoosballGame/forever/logs/other/forever.log",
+    "outFile": "/home/pi/shared/FoosballGame/forever/logs/other/out.log",
+    "errFile": "/home/pi/shared/FoosballGame/forever/logs/other/error.log"
 	},
 	{
     "uid": "syncPassword",
     "append": true,
     "script": ".",
     "command": "npm run syncPassword",
-    "sourceDir": "/Users/jongray/Recreation/Foosball/FoosballGame",
-    "logFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/forever.log",
-    "outFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/out.log",
-    "errFile": "/Users/jongray/Recreation/Foosball/FoosballGame/forever/logs/other/error.log"
+    "sourceDir": "/home/pi/shared/FoosballGame",
+    "logFile": "/home/pi/shared/FoosballGame/forever/logs/other/forever.log",
+    "outFile": "/home/pi/shared/FoosballGame/forever/logs/other/out.log",
+    "errFile": "/home/pi/shared/FoosballGame/forever/logs/other/error.log"
 	}
 ]
