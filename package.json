@@ -8,12 +8,12 @@
     "test:watch": "npm test -- --watch",
     "start": "node src",
     "start:scoreboard": "python src/utils/deviceHandlers/receiveScore.py",
-    "setNewPassword": "node ./config/setNewPassword",
-    "syncPassword": "node ./config/syncPassword",
+    "start:primary": "npm-run-parallel ping syncPassword",
+    "start:secondary": "npm-run-parallel ping syncPassword",
     "ping": "./config/ping.sh",
-    "ipAddress": "echo ipAddress",
-    "seed:supplicant": "sudo cp -fr ./config/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf && wpa_cli -i wlan0 reconfigure",
-    "clean:logs": "find . -type f -name '*.log' -print | while read i; do echo ' ' > $i; done "
+    "syncPassword": "node ./config/syncPassword",
+    "setNewPassword": "node ./config/setNewPassword",
+    "seed:supplicant": "sudo cp -fr ./config/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf && wpa_cli -i wlan0 reconfigure"
   },
   "keywords": [],
   "author": "",

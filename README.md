@@ -2,6 +2,7 @@
 Receives input from connected sensors on a Raspberry Pi, keeping track of score and saving games
 
 # Next Steps:
+- find a place to make the calls to get the ip of the secondary device
 - literally wire everything up and try it out!
 
 # TODOS (no particular order):

@@ -1,10 +1,12 @@
 const { Machine, interpret } = require('xstate')
 const readline = require('readline');
+const debounce = require('lodash.debounce')
 
 const { Game } = require('./models')
 const { gameConfig } = require('./state/config')
 const {
   INITIATE_GAME,
+  SET_SECONDARY_PI,
   BADGE_SCAN,
   SCORE_POINT,
   APPEND_CHAR,
@@ -42,8 +44,8 @@ const onAppKeypress = keyName => {
       break;
     case 'up':
     case 'down':
-    // case 'left':
-    // case 'right':
+      // case 'left':
+      // case 'right':
       gameService.send(MOVE_CURSOR, { direction: keyName })
       break;
     case 's':
@@ -54,7 +56,7 @@ const onAppKeypress = keyName => {
 
 const onInputKeypress = keyName => {
   if (keyName.length === 1 && /[a-z0-9]/.test(keyName)) {
-    gameService.send(APPEND_CHAR, {character: keyName})
+    gameService.send(APPEND_CHAR, { character: keyName })
   } else if (keyName === 'return') {
     gameService.send(CONFIRM)
   } else if (keyName === 'backspace') {
@@ -79,11 +81,12 @@ const onVibration = () => {
 const badgeScanChild = childProcess('readCard.js', onBadgeScan)
 const gameStartChild = childProcess('gameStart.js', onGameStart)
 const scorePointChild = childProcess('scorePoint.js', onPointScore)
-const vibrationChild = childProcess('vibration.js', onVibration)
+const vibrationChild = childProcess('vibration.js', debounce(onVibration, 300, { leading: true, trailing: false }))
 
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
-process.stdin.on('keypress', (str, key) => {
+
+const handleKeypress = (str, key) => {
   if (key.ctrl && key.name === 'c') {
     process.exit();
   } else if (currentState === 'registration') {
@@ -91,4 +94,5 @@ process.stdin.on('keypress', (str, key) => {
   } else {
     onAppKeypress(key.name)
   }
-});
+}
+process.stdin.on('keypress', debounce(handleKeypress, 300, { leading: true, trailing: false }));
