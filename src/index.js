@@ -30,7 +30,13 @@ const gameService = interpret(gameMachine)
   })
   .start()
 
-const onBadgeScan = data => gameService.send(BADGE_SCAN, { id: data })
+const onBadgeScan = ({ message, id }) => {
+  if (message) {
+    console.log('FROM SCAN', message)
+  } else if (id) {
+    gameService.send(BADGE_SCAN, { id })
+  }
+}
 const onGameStart = () => gameService.send(INITIATE_GAME)
 const onPointScore = index => gameService.send(SCORE_POINT, { index })
 const onAppKeypress = keyName => {
