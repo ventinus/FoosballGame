@@ -43,7 +43,13 @@ const {
 } = require('./actions')
 
 const { findNewOrCurrentGame, completeGame, findPlayer } = require('./services')
-const { canActivate, notPresent, gameComplete } = require('./guards')
+const {
+  canActivate,
+  notPresent,
+  canMoveCursor,
+  canConfirmPlayerSelected,
+  gameComplete
+} = require('./guards')
 
 exports.gameConfig = {
   id: 'foosball',
@@ -58,7 +64,7 @@ exports.gameConfig = {
     },
     selectedPlayerIndices: [],
     newPlayer: {
-      id: '',
+      id: 0,
       alias: '',
     }
   },
@@ -78,10 +84,12 @@ exports.gameConfig = {
           actions: [switchSides, updateCompetition]
         },
         [MOVE_CURSOR]: {
-          actions: [moveCursor, updateCompetition]
+          actions: [moveCursor, updateCompetition],
+          cond: canMoveCursor
         },
         [CONFIRM]: {
-          actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers, updateCompetition]
+          actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers, updateCompetition],
+          cond: canConfirmPlayerSelected
         },
       },
     },

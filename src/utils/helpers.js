@@ -65,7 +65,7 @@ const fillOledRow = (beginning, end) => {
   // const MAX_LEN = 21 // the amount of characters that can fit in a row on the oled screen
   const MAX_LEN = 19
 
-  if (!end) return beginning
+  if (!end) return ` ${beginning}`
 
   if (beginning.length >= end.length) {
     const maxBeginningLength = Math.min(beginning.length, MAX_LEN - end.length - 1)

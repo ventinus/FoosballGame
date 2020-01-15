@@ -93,7 +93,7 @@ describe('gameConfig', () => {
       },
       selectedPlayerIndices: [],
       newPlayer: {
-        id: '',
+        id: 0,
         alias: '',
       }
     })
@@ -155,9 +155,11 @@ describe('gameConfig', () => {
 
     it('should NOT add a player twice', done => {
       mockFindPlayer(true)
+      let render = 0
       service = interpret(init({ players: [{ id: 321 }] }))
         .onTransition(state => {
-          if (state.value === 'inactive' && state.changed === false) {
+          render++
+          if (state.value === 'inactive' && state.changed === false && render > 1) {
             expect(state.context.players).toEqual([{ id: 321 }])
             expect(state.context.currentGame).toBe(null)
             done()
@@ -187,7 +189,7 @@ describe('gameConfig', () => {
       expect(context.currentGame).toBe(null)
     })
 
-    it('should switch the player ids on switch sides', () => {
+    it('should switch the player ids on SWITCH_SIDES', () => {
       machine = init({ players: [1, 2] })
 
       state = machine.transition('inactive', SWITCH_SIDES)
@@ -199,14 +201,58 @@ describe('gameConfig', () => {
       expect(state.context.players).toEqual([3, 4, 1, 2])
     })
 
+    it('should NOT move the cursor with less than 3 players', () => {
+      [[100], [100, 200]].forEach(ids => {
+        machine = init({ players: ids })
+
+        state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+        expect(state.context.cursorPosition.y).toBe(0)
+      })
+    })
+
+    it('should move the cursor on the left with 3 players', () => {
+      machine = init({ players: [100, 200, 300] })
+
+      state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+      expect(state.context.cursorPosition.y).toBe(1)
+    })
+
+    it('should NOT move the cursor on the right with 3 players', () => {
+      machine = init({ players: [100, 200, 300], selectedPlayerIndices: [1], cursorPosition: { x: 1, y: 0 } })
+
+      state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+      expect(state.context.cursorPosition.y).toBe(0)
+    })
+
+    it('should move the cursor on the left with 4 players', () => {
+      machine = init({ players: [100, 200, 300, 400] })
+
+      state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+      expect(state.context.cursorPosition.y).toBe(1)
+    })
+
+    it('should move the cursor on the right with 4 players', () => {
+      machine = init({ players: [100, 200, 300, 400], cursorPosition: { x: 1, y: 0 } })
+
+      state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
+      expect(state.context.cursorPosition.y).toBe(1)
+    })
+
     it('should select a player for switching', () => {
-      machine = init({ players: [1, 2] })
+      machine = init({ players: [100, 200, 300, 400] })
 
       state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
       expect(state.context.cursorPosition.y).toBe(1)
 
       state = machine.transition(state, { type: CONFIRM })
       expect(state.context.selectedPlayerIndices).toEqual([1])
+    })
+
+    it('should NOT select a player for switching', () => {
+      machine = init({ players: [100] })
+
+      state = machine.transition(state, { type: CONFIRM })
+      expect(state.context.selectedPlayerIndices.length).toBe(0)
     })
 
     it('should switch a player with one on the other team', () => {
@@ -238,7 +284,7 @@ describe('gameConfig', () => {
 
   describe('registration', () => {
     it('should handle inputting an alias', () => {
-      machine = init()
+      machine = init({newPlayer: { id: 888, alias: '' }})
 
       state = machine.transition('registration', { type: APPEND_CHAR, character: 'a' })
       state = machine.transition(state, { type: APPEND_CHAR, character: 'b' })
@@ -251,9 +297,9 @@ describe('gameConfig', () => {
       expect(helpers.prompt.mock.calls.map(call => call[0][2])).toEqual(['a', 'ab', 'abe', 'ab'])
 
       state = machine.transition(state, CONFIRM)
-      expect(api.createPlayer).toHaveBeenCalledWith({ playerId: '', alias: 'ab' })
-      expect(state.context.newPlayer).toEqual({ id: '', alias: '' })
-      expect(state.context.players).toEqual([{ id: '', alias: 'ab' }])
+      expect(api.createPlayer).toHaveBeenCalledWith({ playerId: 888, alias: 'ab' })
+      expect(state.context.newPlayer).toEqual({ id: 0, alias: '' })
+      expect(state.context.players).toEqual([{ id: 888, alias: 'ab' }])
       expect(state.value).toBe('inactive')
     })
   })

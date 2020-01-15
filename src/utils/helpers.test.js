@@ -47,6 +47,7 @@ describe('#toCompetitionId', () => {
 
 describe('#fillOledRow', () => {
   it('should separate the two strings with the appropriate amount of spaces', () => {
+    expect(fillOledRow('asdf')).toBe(' asdf')
     expect(fillOledRow('asdf', 'qwer')).toBe(' asdf           qwer')
     expect(fillOledRow('as', 'qwer')).toBe(' as             qwer')
     expect(fillOledRow('as', 'er')).toBe(' as               er')
@@ -65,7 +66,7 @@ describe('#showCompetition', () => {
 
   it('should display with 1 player', () => {
     showCompetition([player('first')], {x: 0, y: 0}, true)
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', 'first'])
+    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', ' first'])
   })
 
   it('should display with 2 player', () => {
@@ -76,7 +77,7 @@ describe('#showCompetition', () => {
   it('should display cursor with 3 player', () => {
     showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, true)
     expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second', 0])
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', ' second', 0])
   })
 
   it('should display cursor with 4 player', () => {
@@ -88,7 +89,7 @@ describe('#showCompetition', () => {
   it('should NOT display cursor with 3 player', () => {
     showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, false)
     expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', 'second', undefined])
+      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', ' second', undefined])
   })
 
   it('should NOT display cursor with 4 player', () => {

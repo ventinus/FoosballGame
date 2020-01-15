@@ -20,7 +20,7 @@ exports.resetGame = assign({
   }),
   selectedPlayerIndices: () => [],
   newPlayer: () => ({
-    id: '',
+    id: 0,
     alias: '',
   })
 })
@@ -38,12 +38,10 @@ exports.backspace = assign({
 })
 
 exports.seedNewPlayer = assign({
-  newPlayer: (ctx, event) => {
-    return {
-      id: event.data.id,
-      alias: ''
-    }
-  }
+  newPlayer: (ctx, event) => ({
+    id: event.data.id,
+    alias: ''
+  })
 })
 
 exports.updateCompetition = assign(({ players, cursorPosition, currentGame }) =>
@@ -61,7 +59,7 @@ exports.createPlayer = assign({
     Player.create(newPlayer)
 
     return {
-      id: '',
+      id: 0,
       alias: '',
     }
   },
@@ -79,23 +77,19 @@ exports.switchSides = assign({
 })
 
 exports.moveCursor = assign({
-  cursorPosition: ({ cursorPosition }, { direction }) => {
+  cursorPosition: ({ cursorPosition, players, selectedPlayerIndices }, { direction }) => {
+    const updatedCursor = Object.assign({}, cursorPosition)
     const maxY = 1
+
     if (direction === 'up') {
       const newY = cursorPosition.y - 1
-      return {
-        ...cursorPosition,
-        y: newY < 0 ? maxY : newY
-      }
+      updatedCursor.y = newY < 0 ? maxY : newY
     } else if (direction === 'down') {
       const newY = cursorPosition.y + 1
-      return {
-        ...cursorPosition,
-        y: newY > maxY ? 0 : newY
-      }
+      updatedCursor.y = newY > maxY ? 0 : newY
     }
 
-    return cursorPosition
+    return updatedCursor
   }
 })
 
