@@ -2,12 +2,10 @@ const Mfrc522 = require("mfrc522-rpi");
 const SoftSPI = require("rpi-softspi");
 const { beep } = require('../helpers')
 
-const send = process.send
-
 //# This loop keeps checking for chips. If one is near it will get the UID and authenticate
-send({ message: "scanning..." });
-send({ message: "Please put chip or keycard in the antenna inductive zone!" });
-send({ message: "Press Ctrl-C to stop." });
+console.log({ message: "scanning..." });
+console.log({ message: "Please put chip or keycard in the antenna inductive zone!" });
+console.log({ message: "Press Ctrl-C to stop." });
 
 const softSPI = new SoftSPI({
   clock: 23, // pin number of SCLK
@@ -27,18 +25,18 @@ setInterval(function() {
   //# Scan for cards
   let response = mfrc522.findCard();
   if (!response.status) {
-    send({ message: "No Card" });
+    console.log({ message: "No Card" });
     return;
   }
 
-  send({ message: `Card detected, CardType: ${response.bitSize}` });
+  console.log({ message: `Card detected, CardType: ${response.bitSize}` });
   beep()
 
   //# Get the UID of the card
-  send({ message: 'before response' })
+  console.log({ message: 'before response' })
   response = mfrc522.getUid();
   if (!response.status) {
-    send({ message: "UID Scan Error" });
+    console.log({ message: "UID Scan Error" });
     return;
   }
   //# If we have the UID, continue
@@ -47,9 +45,9 @@ setInterval(function() {
   for (let i = 0; i < uid.length; i++) {
     cardId = cardId * 256 + uid[i]
   }
-  send({ message: cardId })
-  send({ message: `after response ${response.status}` })
-  // send(
+  console.log({ message: cardId })
+  console.log({ message: `after response ${response.status}` })
+  // console.log(
   //   "Card read UID: %s %s %s %s",
   //   uid[0].toString(16),
   //   uid[1].toString(16),
@@ -59,23 +57,23 @@ setInterval(function() {
 
   //# Select the scanned card
   const memoryCapacity = mfrc522.selectCard(uid);
-  // send("Card Memory Capacity: " + memoryCapacity);
+  // console.log({ message: "Card Memory Capacity: " + memoryCapacity });
 
   //# This is the default key for authentication
   const key = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff];
 
   //# Authenticate on Block 8 with key and uid
   if (!mfrc522.authenticate(8, key, uid)) {
-    send({ message: "Authentication Error" });
+    console.log({ message: "Authentication Error" });
     return;
   }
 
   //# Dump Block 8
   const value = String.fromCharCode(...mfrc522.getDataForBlock(8))
-  send({ message: `Block: 8 Data: ${value}` });
+  console.log({ message: `Block: 8 Data: ${value}` });
 
-  // send({ message: JSON.stringify({value, cardId}, null, 2) })
-  send({ id: cardId })
+  // console.log({ message: JSON.stringify({value, cardId}, null, 2) })
+  process.send({ id: cardId })
 
   //# Stop
   mfrc522.stopCrypto();

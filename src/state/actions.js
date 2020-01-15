@@ -4,6 +4,11 @@ const { assign } = require('xstate')
 const { Game, Player } = require('../models')
 const { formatTeams, sendToScoreboard, prompt, showCompetition, beep } = require('../utils/helpers')
 
+const addPlayer = (players, newPlayer) => {
+  const next = players.concat(newPlayer)
+  return next.length > 4 ? next.slice(1) : next
+}
+
 // ---------------- Actions ---------------- //
 exports.resetGame = assign({
   players: () => [],
@@ -21,10 +26,7 @@ exports.resetGame = assign({
 })
 
 exports.addPlayer = assign({
-  players: ({ players }, { data }) => {
-    const next = players.concat(data)
-    return next.length > 4 ? next.slice(1) : next
-  }
+  players: ({ players }, { data }) => addPlayer(players, data)
 })
 
 exports.appendCharacter = assign({
@@ -62,7 +64,8 @@ exports.createPlayer = assign({
       id: '',
       alias: '',
     }
-  }
+  },
+  players: ({ players, newPlayer }) => addPlayer(players, newPlayer)
 })
 
 exports.switchSides = assign({

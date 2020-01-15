@@ -253,6 +253,7 @@ describe('gameConfig', () => {
       state = machine.transition(state, CONFIRM)
       expect(api.createPlayer).toHaveBeenCalledWith({ playerId: '', alias: 'ab' })
       expect(state.context.newPlayer).toEqual({ id: '', alias: '' })
+      expect(state.context.players).toEqual([{ id: '', alias: 'ab' }])
       expect(state.value).toBe('inactive')
     })
   })
