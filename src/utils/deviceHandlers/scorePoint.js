@@ -1,4 +1,4 @@
-const { Gpio } = require('onoff');
+const { Gpio } = require('onoff')
 
 const [sensor1, sensor2] = [4, 5].map(pin => new Gpio(pin, 'in', 'both'))
 

@@ -41,14 +41,14 @@ const init = (context = {}) => fsm.withContext({ ...fsm.context, ...context })
 
 const mockApi = isComplete => {
   api.initializeCompetition.mockImplementation(() => {
-    return isComplete ?
-      Promise.resolve({ completed: [], current: null }) :
-      Promise.resolve({ completed: [], current: { t1Points: 4, t2Points: 3 } })
+    return isComplete
+      ? Promise.resolve({ completed: [], current: null })
+      : Promise.resolve({ completed: [], current: { t1Points: 4, t2Points: 3 } })
   })
 }
 
 const mockFindPlayer = isFound => {
-  api.findPlayer.mockImplementation((id) => {
+  api.findPlayer.mockImplementation(id => {
     return isFound ? Promise.resolve({ id, alias: 'foo' }) : Promise.resolve({ id })
   })
 }
@@ -95,7 +95,7 @@ describe('gameConfig', () => {
       newPlayer: {
         id: 0,
         alias: '',
-      }
+      },
     })
   })
 
@@ -144,7 +144,10 @@ describe('gameConfig', () => {
       service = interpret(init({ players: [{ id: 1234, alias: 'bar' }] }))
         .onTransition(state => {
           if (state.value === 'inactive' && state.context.players.length === 2) {
-            expect(state.context.players).toEqual([{ id: 1234, alias: 'bar' }, { id: 567, alias: 'foo' }])
+            expect(state.context.players).toEqual([
+              { id: 1234, alias: 'bar' },
+              { id: 567, alias: 'foo' },
+            ])
             expect(state.context.currentGame).toBe(null)
             done()
           }
@@ -171,10 +174,24 @@ describe('gameConfig', () => {
 
     it('should not exceed 4 players', done => {
       mockFindPlayer(true)
-      service = interpret(init({ players: [{ id: 1, alias: 'foo1' }, { id: 2, alias: 'foo2' }, { id: 3, alias: 'foo3' }, { id: 4, alias: 'foo4' }] }))
+      service = interpret(
+        init({
+          players: [
+            { id: 1, alias: 'foo1' },
+            { id: 2, alias: 'foo2' },
+            { id: 3, alias: 'foo3' },
+            { id: 4, alias: 'foo4' },
+          ],
+        })
+      )
         .onTransition(state => {
           if (state.value === 'inactive' && state.context.players[0].id !== 1) {
-            expect(state.context.players).toEqual([{ id: 2, alias: 'foo2' }, { id: 3, alias: 'foo3' }, { id: 4, alias: 'foo4' }, { id: 567, alias: 'foo' }])
+            expect(state.context.players).toEqual([
+              { id: 2, alias: 'foo2' },
+              { id: 3, alias: 'foo3' },
+              { id: 4, alias: 'foo4' },
+              { id: 567, alias: 'foo' },
+            ])
             expect(state.context.currentGame).toBe(null)
             done()
           }
@@ -202,7 +219,7 @@ describe('gameConfig', () => {
     })
 
     it('should NOT move the cursor with less than 3 players', () => {
-      [[100], [100, 200]].forEach(ids => {
+      ;[[100], [100, 200]].forEach(ids => {
         machine = init({ players: ids })
 
         state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
@@ -218,7 +235,11 @@ describe('gameConfig', () => {
     })
 
     it('should NOT move the cursor on the right with 3 players', () => {
-      machine = init({ players: [100, 200, 300], selectedPlayerIndices: [1], cursorPosition: { x: 1, y: 0 } })
+      machine = init({
+        players: [100, 200, 300],
+        selectedPlayerIndices: [1],
+        cursorPosition: { x: 1, y: 0 },
+      })
 
       state = machine.transition('inactive', { type: MOVE_CURSOR, direction: 'up' })
       expect(state.context.cursorPosition.y).toBe(0)
@@ -258,7 +279,11 @@ describe('gameConfig', () => {
     it('should switch a player with one on the other team', () => {
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
-          machine = init({ players: [1, 2, 3, 4], selectedPlayerIndices: [i], cursorPosition: { y: j } })
+          machine = init({
+            players: [1, 2, 3, 4],
+            selectedPlayerIndices: [i],
+            cursorPosition: { y: j },
+          })
 
           state = machine.transition(machine.initialState, { type: CONFIRM })
           expect(state.context.selectedPlayerIndices).toEqual([])
@@ -284,7 +309,7 @@ describe('gameConfig', () => {
 
   describe('registration', () => {
     it('should handle inputting an alias', () => {
-      machine = init({newPlayer: { id: 888, alias: '' }})
+      machine = init({ newPlayer: { id: 888, alias: '' } })
 
       state = machine.transition('registration', { type: APPEND_CHAR, character: 'a' })
       state = machine.transition(state, { type: APPEND_CHAR, character: 'b' })
@@ -311,7 +336,7 @@ describe('gameConfig', () => {
         expect(state.value).toBe('active')
         expect(state.context.currentGame.teamPoints).toEqual([0, 0])
         expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([0, 0])
-        expect(helpers.showCompetition.mock.calls[1]).toEqual([[1, 2, 3, 4], {x: 0, y: 0}, false])
+        expect(helpers.showCompetition.mock.calls[1]).toEqual([[1, 2, 3, 4], { x: 0, y: 0 }, false])
         done()
       })
     })
@@ -322,7 +347,9 @@ describe('gameConfig', () => {
         expect(state.value).toBe('shouldResume')
         expect(state.context.currentGame.teamPoints).toEqual([4, 3])
         expect(helpers.sendToScoreboard.mock.calls[0][0].teamPoints).toEqual([4, 3])
-        expect(helpers.prompt.mock.calls[0][0]).toBe('Would you like to resume your previous unfinished game?')
+        expect(helpers.prompt.mock.calls[0][0]).toBe(
+          'Would you like to resume your previous unfinished game?'
+        )
         done()
       }, 'shouldResume')
     })
@@ -336,7 +363,7 @@ describe('gameConfig', () => {
       expect(state.value).toBe('active')
       expect(state.context.currentGame.teamPoints).toEqual([1, 3])
       expect(helpers.showCompetition).toHaveBeenCalledTimes(1)
-      expect(helpers.showCompetition).toHaveBeenCalledWith([ 1, 2 ], { x: 0, y: 0 }, false)
+      expect(helpers.showCompetition).toHaveBeenCalledWith([1, 2], { x: 0, y: 0 }, false)
     })
 
     it('should delete the current game and start a new one', () => {
@@ -348,7 +375,7 @@ describe('gameConfig', () => {
       expect(state.value).toBe('active')
       expect(helpers.prompt).toHaveBeenCalledTimes(1)
       expect(helpers.showCompetition).toHaveBeenCalledTimes(1)
-      expect(helpers.showCompetition).toHaveBeenCalledWith([ 1, 2 ], { x: 0, y: 0 }, false)
+      expect(helpers.showCompetition).toHaveBeenCalledWith([1, 2], { x: 0, y: 0 }, false)
     })
   })
 
@@ -423,9 +450,9 @@ describe('gameConfig', () => {
   })
 
   describe('pauseWarning', () => {
-    const gameProps = (extra = { }) => ({
+    const gameProps = (extra = {}) => ({
       players: [1, 2],
-      currentGame: Game('1', '2', { ...extra, t1Points: 4, t2Points: 4 })
+      currentGame: Game('1', '2', { ...extra, t1Points: 4, t2Points: 4 }),
     })
 
     it('should turn on the warning on entry', () => {

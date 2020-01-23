@@ -9,8 +9,14 @@ exports.formatTeams = players => {
     team1 = `${ids[0]}`
     team2 = `${ids[1]}`
   } else if (ids.length === 4) {
-    team1 = ids.slice(0, 2).sort().join('::')
-    team2 = ids.slice(2, 4).sort().join('::')
+    team1 = ids
+      .slice(0, 2)
+      .sort()
+      .join('::')
+    team2 = ids
+      .slice(2, 4)
+      .sort()
+      .join('::')
   }
   return [team1, team2]
 }
@@ -23,7 +29,7 @@ exports.sendToScoreboard = ({ teamPoints }) => {
   const scoreProcess = spawn('python', [
     path.resolve('src/utils/deviceHandlers/sendScore.py'),
     '192.168.0.32', // NOTE: will need updating
-    teamPoints.join(' ')
+    teamPoints.join(' '),
   ])
 
   // scoreProcess.stdout.on('data', data => {
@@ -49,10 +55,7 @@ const toOledRows = str => {
 exports.toOledRows = toOledRows
 
 const prompt = (msg = []) => {
-  spawn('python', [
-     path.resolve('src/utils/deviceHandlers/display.py'),
-     ...toOledRows(msg)
-  ])
+  spawn('python', [path.resolve('src/utils/deviceHandlers/display.py'), ...toOledRows(msg)])
 }
 
 exports.prompt = prompt
@@ -69,12 +72,12 @@ const fillOledRow = (beginning, end) => {
 
   if (beginning.length >= end.length) {
     const maxBeginningLength = Math.min(beginning.length, MAX_LEN - end.length - 1)
-    const spacesCount = (MAX_LEN - maxBeginningLength - end.length) + 1
+    const spacesCount = MAX_LEN - maxBeginningLength - end.length + 1
     const spaces = new Array(spacesCount).join(' ')
     return ` ${beginning.slice(0, maxBeginningLength)}${spaces}${end}`
   } else {
     const maxEndLength = Math.min(end.length, MAX_LEN - beginning.length - 1)
-    const spacesCount = (MAX_LEN - maxEndLength - beginning.length) + 1
+    const spacesCount = MAX_LEN - maxEndLength - beginning.length + 1
     const spaces = new Array(spacesCount).join(' ')
     return ` ${beginning}${spaces}${end.slice(0, maxEndLength)}`
   }
@@ -104,11 +107,14 @@ exports.showCompetition = (players, cursorPosition, showCursor) => {
   switch (aliases.length) {
     case 3:
     case 4:
-      pairs = [[0,2], [1,3]]
-      break;
+      pairs = [
+        [0, 2],
+        [1, 3],
+      ]
+      break
     default:
       pairs = [[0, 1]]
-      break;
+      break
   }
 
   const msg = pairs.map(([first, second]) => fillOledRow(aliases[first], aliases[second]))

@@ -1,5 +1,6 @@
 // ---------------- Guards ----------------- //
-exports.canActivate = ({ players, selectedPlayerIndices }) => players.length >= 2 && selectedPlayerIndices.length === 0
+exports.canActivate = ({ players, selectedPlayerIndices }) =>
+  players.length >= 2 && selectedPlayerIndices.length === 0
 
 exports.notPresent = ({ players }, { id }) => !players.find(player => player.id === id)
 

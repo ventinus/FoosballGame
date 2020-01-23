@@ -3,13 +3,13 @@ const api = require('../utils/api')
 const Player = ({ id, alias }) => {
   const props = {
     alias,
-    id
+    id,
   }
 
   return {
     get props() {
       return props
-    }
+    },
   }
 }
 

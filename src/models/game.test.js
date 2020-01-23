@@ -42,7 +42,7 @@ describe('Game', () => {
     expect(init(newProps).props).toEqual({
       t1: 'team1',
       t2: 'team2',
-      ...newProps
+      ...newProps,
     })
   })
 

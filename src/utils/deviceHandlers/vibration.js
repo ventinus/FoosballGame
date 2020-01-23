@@ -1,4 +1,4 @@
-const { Gpio } = require('onoff');
+const { Gpio } = require('onoff')
 
 // TODO: determine correct pin usage
 const sensor = new Gpio(18, 'in', 'both')

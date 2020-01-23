@@ -1,4 +1,4 @@
-const { Gpio } = require('onoff');
+const { Gpio } = require('onoff')
 
 module.exports = (pin = 17, forever = false) => {
   const buzzer = new Gpio(pin, 'out')

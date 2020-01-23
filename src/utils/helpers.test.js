@@ -11,7 +11,7 @@ const {
 
 jest.mock('child_process')
 jest.mock('path', () => ({
-  resolve: jest.fn(() => '/path')
+  resolve: jest.fn(() => '/path'),
 }))
 
 const toPlayers = ids => ids.map(id => ({ id }))
@@ -65,48 +65,88 @@ describe('#showCompetition', () => {
   const player = alias => ({ alias })
 
   it('should display with 1 player', () => {
-    showCompetition([player('first')], {x: 0, y: 0}, true)
+    showCompetition([player('first')], { x: 0, y: 0 }, true)
     expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', ' first'])
   })
 
   it('should display with 2 player', () => {
-    showCompetition([player('first'), player('second')], {x: 0, y: 0}, true)
-    expect(child_process.spawn).toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'second')])
+    showCompetition([player('first'), player('second')], { x: 0, y: 0 }, true)
+    expect(child_process.spawn).toHaveBeenCalledWith('python', [
+      '/path',
+      fillOledRow('first', 'second'),
+    ])
   })
 
   it('should display cursor with 3 player', () => {
-    showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, true)
-    expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', ' second', 0])
+    showCompetition([player('first'), player('second'), player('third')], { x: 0, y: 0 }, true)
+    expect(child_process.spawn).toHaveBeenCalledWith('python', [
+      '/path',
+      fillOledRow('first', 'third'),
+      '',
+      '',
+      ' second',
+      0,
+    ])
   })
 
   it('should display cursor with 4 player', () => {
-    showCompetition([player('first'), player('second'), player('third'), player('fourth')], {x: 0, y: 0}, true)
-    expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth'), 0])
+    showCompetition(
+      [player('first'), player('second'), player('third'), player('fourth')],
+      { x: 0, y: 0 },
+      true
+    )
+    expect(child_process.spawn).toHaveBeenCalledWith('python', [
+      '/path',
+      fillOledRow('first', 'third'),
+      '',
+      '',
+      fillOledRow('second', 'fourth'),
+      0,
+    ])
   })
 
   it('should NOT display cursor with 3 player', () => {
-    showCompetition([player('first'), player('second'), player('third')], {x: 0, y: 0}, false)
-    expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', ' second', undefined])
+    showCompetition([player('first'), player('second'), player('third')], { x: 0, y: 0 }, false)
+    expect(child_process.spawn).toHaveBeenCalledWith('python', [
+      '/path',
+      fillOledRow('first', 'third'),
+      '',
+      '',
+      ' second',
+      undefined,
+    ])
   })
 
   it('should NOT display cursor with 4 player', () => {
-    showCompetition([player('first'), player('second'), player('third'), player('fourth')], {x: 0, y: 0}, false)
-    expect(child_process.spawn)
-      .toHaveBeenCalledWith('python', ['/path', fillOledRow('first', 'third'), '', '', fillOledRow('second', 'fourth'), undefined])
+    showCompetition(
+      [player('first'), player('second'), player('third'), player('fourth')],
+      { x: 0, y: 0 },
+      false
+    )
+    expect(child_process.spawn).toHaveBeenCalledWith('python', [
+      '/path',
+      fillOledRow('first', 'third'),
+      '',
+      '',
+      fillOledRow('second', 'fourth'),
+      undefined,
+    ])
   })
 })
 
 describe('#toOledRows', () => {
   it('should split a string into necessary rows', () => {
-    expect(toOledRows('Lorem ipsum dolor sit amet, consectetur adipisicing elit. For What'))
-      .toEqual(['Lorem ipsum dolor sit', 'amet, consectetur', 'adipisicing elit. For', 'What'])
-    expect(toOledRows('Id nisi dicta iste a aliquid quam modi.'))
-      .toEqual(['Id nisi dicta iste a', 'aliquid quam modi.'])
-    expect(toOledRows('eum error animi optio veniam suscipit unde.'))
-      .toEqual(['eum error animi optio', 'veniam suscipit unde.'])
+    expect(
+      toOledRows('Lorem ipsum dolor sit amet, consectetur adipisicing elit. For What')
+    ).toEqual(['Lorem ipsum dolor sit', 'amet, consectetur', 'adipisicing elit. For', 'What'])
+    expect(toOledRows('Id nisi dicta iste a aliquid quam modi.')).toEqual([
+      'Id nisi dicta iste a',
+      'aliquid quam modi.',
+    ])
+    expect(toOledRows('eum error animi optio veniam suscipit unde.')).toEqual([
+      'eum error animi optio',
+      'veniam suscipit unde.',
+    ])
   })
 
   it('should handle arrays', () => {
@@ -117,13 +157,13 @@ describe('#toOledRows', () => {
 describe('#cursorPositionToCorner', () => {
   it('should output the correct corner number', () => {
     // top left
-    expect(cursorPositionToCorner({x: 0, y: 0})).toBe(0)
+    expect(cursorPositionToCorner({ x: 0, y: 0 })).toBe(0)
     // bottom left
-    expect(cursorPositionToCorner({x: 0, y: 1})).toBe(1)
+    expect(cursorPositionToCorner({ x: 0, y: 1 })).toBe(1)
     // top right
-    expect(cursorPositionToCorner({x: 1, y: 0})).toBe(2)
+    expect(cursorPositionToCorner({ x: 1, y: 0 })).toBe(2)
     // bottom right
-    expect(cursorPositionToCorner({x: 1, y: 1})).toBe(3)
+    expect(cursorPositionToCorner({ x: 1, y: 1 })).toBe(3)
   })
 })
 

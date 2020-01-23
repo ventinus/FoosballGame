@@ -22,26 +22,29 @@ exports.resetGame = assign({
   newPlayer: () => ({
     id: 0,
     alias: '',
-  })
+  }),
 })
 
 exports.addPlayer = assign({
-  players: ({ players }, { data }) => addPlayer(players, data)
+  players: ({ players }, { data }) => addPlayer(players, data),
 })
 
 exports.appendCharacter = assign({
-  newPlayer: ({ newPlayer }, { character }) => ({ ...newPlayer, alias: `${newPlayer.alias}${character}`.slice(0, 10) })
+  newPlayer: ({ newPlayer }, { character }) => ({
+    ...newPlayer,
+    alias: `${newPlayer.alias}${character}`.slice(0, 10),
+  }),
 })
 
 exports.backspace = assign({
-  newPlayer: ({ newPlayer }) => ({ ...newPlayer, alias: newPlayer.alias.slice(0, -1) })
+  newPlayer: ({ newPlayer }) => ({ ...newPlayer, alias: newPlayer.alias.slice(0, -1) }),
 })
 
 exports.seedNewPlayer = assign({
   newPlayer: (ctx, event) => ({
     id: event.data.id,
-    alias: ''
-  })
+    alias: '',
+  }),
 })
 
 exports.updateCompetition = assign(({ players, cursorPosition, currentGame }) =>
@@ -63,7 +66,7 @@ exports.createPlayer = assign({
       alias: '',
     }
   },
-  players: ({ players, newPlayer }) => addPlayer(players, newPlayer)
+  players: ({ players, newPlayer }) => addPlayer(players, newPlayer),
 })
 
 exports.switchSides = assign({
@@ -73,7 +76,7 @@ exports.switchSides = assign({
     }
 
     return Array.from(players).reverse()
-  }
+  },
 })
 
 exports.moveCursor = assign({
@@ -90,7 +93,7 @@ exports.moveCursor = assign({
     }
 
     return updatedCursor
-  }
+  },
 })
 
 exports.setSelectedPlayer = assign({
@@ -99,7 +102,7 @@ exports.setSelectedPlayer = assign({
   cursorPosition: ({ selectedPlayerIndices }) => ({
     y: 0,
     x: selectedPlayerIndices.length === 0 ? 1 : 0,
-  })
+  }),
 })
 
 exports.exchangePlayers = assign({
@@ -125,24 +128,22 @@ exports.exchangePlayers = assign({
     }
 
     return out
-  }
+  },
 })
 
 exports.resetSelectedPlayers = assign({
   selectedPlayerIndices: ({ selectedPlayerIndices }) =>
-    selectedPlayerIndices.length === 2 ? [] : selectedPlayerIndices
+    selectedPlayerIndices.length === 2 ? [] : selectedPlayerIndices,
 })
 
 exports.scorePoint = assign({
   currentGame: ({ currentGame }, { index }) => {
     currentGame.scorePoint(index)
     return currentGame
-  }
+  },
 })
 
-exports.updateScoreboard = assign(({ currentGame }) =>
-  sendToScoreboard(currentGame)
-)
+exports.updateScoreboard = assign(({ currentGame }) => sendToScoreboard(currentGame))
 
 exports.promptResume = assign(() =>
   prompt('Would you like to resume your previous unfinished game?')
@@ -151,14 +152,14 @@ exports.promptResume = assign(() =>
 exports.clearPrompt = assign(prompt)
 
 exports.setGame = assign({
-  currentGame: (ctx, { data }) => data
+  currentGame: (ctx, { data }) => data,
 })
 
 exports.createGame = assign({
   currentGame: ({ players }) => {
     const [team1, team2] = formatTeams(players)
     return Game(team1, team2)
-  }
+  },
 })
 
 // save current game state
@@ -168,19 +169,20 @@ exports.deleteGame = assign({
   currentGame: ({ currentGame }) => {
     currentGame.deleteGame()
     return null
-  }
+  },
 })
 
-exports.setWarning = isWarning => assign(() => {
+exports.setWarning = isWarning =>
+  assign(() => {
     const msg = isWarning ? 'Are you still playing this game?' : ''
     prompt(msg)
     beep(isWarning)
-})
+  })
 
 exports.pauseGame = assign({
   currentGame: ({ currentGame }) => {
     currentGame.pauseGame()
     currentGame.updateGame()
     return currentGame
-  }
+  },
 })

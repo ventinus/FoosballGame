@@ -3,10 +3,10 @@ const fetch = require('node-fetch')
 const competitionsRoot = 'https://v7d5lb2fn6.execute-api.us-west-2.amazonaws.com/prod/Competitions'
 const playersRoot = 'https://v7d5lb2fn6.execute-api.us-west-2.amazonaws.com/prod/Players'
 
-exports.initializeCompetition = async (competitionId) => {
+exports.initializeCompetition = async competitionId => {
   try {
     const response = await fetch(`${competitionsRoot}/${competitionId}/Initialize`, {
-      method: 'POST'
+      method: 'POST',
     })
     const data = await response.json()
     return data
@@ -31,10 +31,10 @@ exports.updateCurrent = async (competitionId, updates) => {
   }
 }
 
-exports.deleteCurrent = async (competitionId) => {
+exports.deleteCurrent = async competitionId => {
   try {
     const response = await fetch(`${competitionsRoot}/${competitionId}/Current`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
     const data = await response.json()
     return data
@@ -62,7 +62,7 @@ exports.finalize = async (competitionId, updates) => {
 exports.findPlayer = async playerId => {
   try {
     const response = await fetch(`${playersRoot}/${playerId}/Find`, {
-      method: 'GET'
+      method: 'GET',
     })
     const data = await response.json()
     return data

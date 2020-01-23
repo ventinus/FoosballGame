@@ -19,10 +19,7 @@ const Game = (t1, t2, initialProps = {}) => {
   }
 
   if (initialProps.pausedAt) {
-    props.pausedDurations = [
-      ...props.pausedDurations,
-      Date.now() - initialProps.pausedAt
-    ]
+    props.pausedDurations = [...props.pausedDurations, Date.now() - initialProps.pausedAt]
   }
 
   const competitionId = toCompetitionId(props.t1, props.t2)
@@ -44,7 +41,7 @@ const Game = (t1, t2, initialProps = {}) => {
 
   const scorePoint = index => props[`t${index + 1}Points`]++
 
-  const pauseGame = () => props.pausedAt = Date.now()
+  const pauseGame = () => (props.pausedAt = Date.now())
 
   return {
     updateGame,
@@ -62,7 +59,7 @@ const Game = (t1, t2, initialProps = {}) => {
     },
     get teamPoints() {
       return [props.t1Points, props.t2Points]
-    }
+    },
   }
 }
 

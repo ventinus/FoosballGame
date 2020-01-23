@@ -48,7 +48,7 @@ const {
   notPresent,
   canMoveCursor,
   canConfirmPlayerSelected,
-  gameComplete
+  gameComplete,
 } = require('./guards')
 
 exports.gameConfig = {
@@ -66,7 +66,7 @@ exports.gameConfig = {
     newPlayer: {
       id: 0,
       alias: '',
-    }
+    },
   },
   states: {
     inactive: {
@@ -74,22 +74,22 @@ exports.gameConfig = {
       on: {
         [INITIATE_GAME]: {
           target: 'pending',
-          cond: canActivate
+          cond: canActivate,
         },
         [BADGE_SCAN]: {
           target: 'findPlayer',
-          cond: notPresent
+          cond: notPresent,
         },
         [SWITCH_SIDES]: {
-          actions: [switchSides, updateCompetition]
+          actions: [switchSides, updateCompetition],
         },
         [MOVE_CURSOR]: {
           actions: [moveCursor, updateCompetition],
-          cond: canMoveCursor
+          cond: canMoveCursor,
         },
         [CONFIRM]: {
           actions: [setSelectedPlayer, exchangePlayers, resetSelectedPlayers, updateCompetition],
-          cond: canConfirmPlayerSelected
+          cond: canConfirmPlayerSelected,
         },
       },
     },
@@ -100,25 +100,25 @@ exports.gameConfig = {
         src: findPlayer,
         onDone: {
           target: 'inactive',
-          actions: addPlayer
+          actions: addPlayer,
         },
-        onError: 'registration'
-      }
+        onError: 'registration',
+      },
     },
     registration: {
       entry: [seedNewPlayer, promptAliasInput],
       on: {
         [APPEND_CHAR]: {
-          actions: [appendCharacter, promptAliasInput]
+          actions: [appendCharacter, promptAliasInput],
         },
         [BACKSPACE]: {
-          actions: [backspace, promptAliasInput]
+          actions: [backspace, promptAliasInput],
         },
         [CONFIRM]: {
           actions: createPlayer,
           target: 'inactive',
         },
-      }
+      },
     },
     pending: {
       exit: [setGame, updateScoreboard],
@@ -150,8 +150,8 @@ exports.gameConfig = {
         [SCORE_POINT]: {
           actions: [scorePoint, updateScoreboard, updateGame],
         },
-        [WARN_PAUSE]: 'pauseWarning'
-      }
+        [WARN_PAUSE]: 'pauseWarning',
+      },
     },
     pauseWarning: {
       entry: setWarning(true),
@@ -161,11 +161,11 @@ exports.gameConfig = {
         [GAME_ACTIVITY]: 'active',
         [DENY]: {
           actions: [pauseGame, resetGame],
-          target: 'inactive'
+          target: 'inactive',
         },
         [PAUSE]: {
           actions: [pauseGame, resetGame],
-          target: 'inactive'
+          target: 'inactive',
         },
       },
     },
@@ -175,7 +175,7 @@ exports.gameConfig = {
         id: 'complete-game',
         src: completeGame,
         onDone: 'inactive',
-      }
-    }
-  }
+      },
+    },
+  },
 }
