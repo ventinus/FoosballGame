@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.570.0",
+    "aws-sdk": "^2.814.0",
     "inquirer": "^7.0.2",
     "lodash.debounce": "^4.0.8",
     "mfrc522-rpi": "^2.1.1",
