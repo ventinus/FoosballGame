@@ -19,7 +19,7 @@
     "inquirer": "^7.0.2",
     "lodash.debounce": "^4.0.8",
     "mfrc522-rpi": "^2.1.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "onoff": "^5.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
