@@ -28,7 +28,7 @@ exports.sendToScoreboard = ({ teamPoints }) => {
   // NOTE: does any previously spawned process need to be killed before starting a new one for memory management?
   const scoreProcess = spawn('python', [
     path.resolve('src/utils/deviceHandlers/sendScore.py'),
-    '192.168.0.32', // NOTE: will need updating
+    'scoreboard', // NOTE: will need updating
     teamPoints.join(' '),
   ])
 
