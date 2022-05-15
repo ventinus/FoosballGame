@@ -8,10 +8,6 @@
     "test:watch": "npm test -- --watch",
     "start": "node src",
     "start:scoreboard": "python src/utils/deviceHandlers/receiveScore.py",
-    "start:primary": "npm-run-parallel ping syncPassword",
-    "start:secondary": "npm-run-parallel ping syncPassword",
-    "ping": "./config/ping.sh",
-    "syncPassword": "node ./config/syncPassword",
     "setNewPassword": "node ./config/setNewPassword",
     "seed:supplicant": "sudo cp -fr ./config/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf && wpa_cli -i wlan0 reconfigure"
   },
