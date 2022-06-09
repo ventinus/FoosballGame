@@ -24,8 +24,8 @@ exports.formatTeams = players => {
 exports.toCompetitionId = (t1, t2) => [t1, t2].sort().join('V')
 
 exports.sendToScoreboard = ({ teamPoints }) => {
-  console.log('send to scoreboard', teamPoints)
   // NOTE: does any previously spawned process need to be killed before starting a new one for memory management?
+  console.log('send to scoreboard', teamPoints)
   const scoreProcess = spawn('python', [
     path.resolve('src/utils/deviceHandlers/sendScore.py'),
     'scoreboard', // NOTE: will need updating
@@ -55,6 +55,7 @@ const toOledRows = str => {
 exports.toOledRows = toOledRows
 
 const prompt = (msg = []) => {
+  console.log(...toOledRows(msg))
   spawn('python', [path.resolve('src/utils/deviceHandlers/display.py'), ...toOledRows(msg)])
 }
 

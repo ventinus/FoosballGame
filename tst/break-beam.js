@@ -1,8 +1,8 @@
 const { Gpio } = require('onoff')
 
-const [sensor1, sensor2] = [4, 5].map(pin => new Gpio(pin, 'in', 'both'))
+const sensors = ['4', '5', '6'].map((pin) => new Gpio(pin, 'in', 'both'))
 
-const handleChange = index => (err, value) => {
+const handleChange = (index) => (err, value) => {
   if (err) {
     console.log(`POINT ERROR: ${err}`)
     return
@@ -13,5 +13,4 @@ const handleChange = index => (err, value) => {
   }
 }
 
-sensor1.watch(handleChange(0))
-sensor2.watch(handleChange(1))
+sensors.forEach((sensor, i) => sensor.watch(handleChange(i)))

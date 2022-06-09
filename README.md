@@ -2,8 +2,8 @@
 Receives input from connected sensors on a Raspberry Pi, keeping track of score and saving games
 
 # Next Steps:
-- find a place to make the calls to get the ip of the secondary device
-- literally wire everything up and try it out!
+- log errors from child processes
+- debounce fob scans (double scan resulting in an undefined player?)
 
 # TODOS (no particular order):
 - statically assign ip address for pi with led displays

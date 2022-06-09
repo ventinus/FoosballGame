@@ -46,7 +46,6 @@ setInterval(function() {
     cardId = cardId * 256 + uid[i]
   }
   console.log({ message: cardId })
-  console.log({ message: `after response ${response.status}` })
   // console.log(
   //   "Card read UID: %s %s %s %s",
   //   uid[0].toString(16),
@@ -73,6 +72,7 @@ setInterval(function() {
   console.log({ message: `Block: 8 Data: ${value}` })
 
   // console.log({ message: JSON.stringify({value, cardId}, null, 2) })
+  // console.log({ id: cardId })
   process.send({ id: cardId })
 
   //# Stop

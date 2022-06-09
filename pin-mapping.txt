@@ -16,11 +16,17 @@ GPIO17
 
 
 vibration sensor
-GPIO18
+GPIO17
 
 goal sensors
-pins 4 and 5
+GPIO4, GPIO5, GPIO6
 
+game start sensor
+GPIO6
+
+oled screen
+https://learn.adafruit.com/adafruit-pioled-128x32-mini-oled-for-raspberry-pi/usage
+https://pimylifeup.com/raspberry-pi-i2c/
 
 
 pi 2

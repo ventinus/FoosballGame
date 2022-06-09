@@ -1,6 +1,6 @@
 const { Gpio } = require('onoff')
 
-const pin = 17
+const pin = '17'
 const buzzer = new Gpio(pin, 'out')
 
 buzzer.write(1)
